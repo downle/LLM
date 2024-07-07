@@ -1,0 +1,3568 @@
+1
+00:00:00,000 --> 00:00:12,000
+Hello everyone. It's our great pleasure to host Professor Stefan Zorin in our Bank of
+
+2
+00:00:12,000 --> 00:00:19,160
+America Quant Speaker Series seminar. And we are very honored to have such a prominent
+
+3
+00:00:19,160 --> 00:00:29,719
+speaker and author of so many nice papers on machine learning and in many other fields.
+
+4
+00:00:29,719 --> 00:00:35,640
+And Professor Stefan Zorin is an associate professor at engineering science at Oxford
+
+5
+00:00:35,640 --> 00:00:42,840
+University and also holds lots of other positions both in Oxford University and in Oxford Mann
+
+6
+00:00:42,840 --> 00:00:50,160
+Institute. And the talk will be on generative AI for limit order book modeling. So we look
+
+7
+00:00:50,160 --> 00:00:58,840
+forward to learning from you and we really hope that it will be like a fascinating talk.
+
+8
+00:00:58,840 --> 00:01:00,840
+I will pass over to you.
+
+9
+00:01:00,840 --> 00:01:12,520
+Basically it's probably safer. So yeah, thanks a lot for everyone attending here in person
+
+10
+00:01:12,520 --> 00:01:17,800
+as well as everyone attending online. I've heard it is a great number attending online.
+
+11
+00:01:17,800 --> 00:01:25,240
+So this is a very honored to have such a big audience. So today I want to speak about generative
+
+12
+00:01:25,239 --> 00:01:31,759
+AI for limit order book modeling. In particular we will end with a very recent paper from
+
+13
+00:01:31,759 --> 00:01:37,099
+end of last year on this topic which is the paper with a number of collaborators in Oxford
+
+14
+00:01:37,099 --> 00:01:44,759
+including Pernagi as well as other researchers. But I will start slowly and I will also cover
+
+15
+00:01:44,759 --> 00:01:51,719
+a little bit the basics kind of starting off with kind of what are limit order books and
+
+16
+00:01:51,719 --> 00:01:57,359
+relevant definitions which obviously for this audience might maybe be yeah, maybe a
+
+17
+00:01:57,359 --> 00:02:02,319
+bit most of you might know a lot about limit order books specifically people working in
+
+18
+00:02:02,319 --> 00:02:07,680
+in market making or execution but there might be a few details particularly from the deep
+
+19
+00:02:07,680 --> 00:02:11,560
+learning perspective which might be often overlooked. So I will just keep it brief but
+
+20
+00:02:11,560 --> 00:02:16,680
+give a bit of an overview and also cover some of our earlier works in the area on predictive
+
+21
+00:02:16,680 --> 00:02:22,920
+modeling before then building up on it and moving on to those more recent generative
+
+22
+00:02:22,920 --> 00:02:28,400
+AI techniques. So yeah this is roughly the structure first a little bit of an overview
+
+23
+00:02:28,400 --> 00:02:35,200
+on microstructure in general and the older series of forecasting models based on limit
+
+24
+00:02:35,200 --> 00:02:41,840
+order books and then moving on to the more recent generative AI models and maybe just
+
+25
+00:02:41,840 --> 00:02:50,319
+a few words on motivation and I mean if it's really one thing you want to take away from
+
+26
+00:02:50,319 --> 00:02:55,800
+the talk is that maybe what's quite exciting is that we have seen all these breakthroughs
+
+27
+00:02:55,800 --> 00:03:02,719
+from large language models everyone has heard about chat GPT and other things but it is
+
+28
+00:03:02,719 --> 00:03:07,759
+not necessarily the focus on language which might be the most important thing for people
+
+29
+00:03:07,759 --> 00:03:13,759
+in finance but it could also be that what we might be aiming at is using the same techniques
+
+30
+00:03:13,759 --> 00:03:19,959
+we use such as the transformer which is the TN in chat GPT but use those techniques but
+
+31
+00:03:19,959 --> 00:03:25,859
+apply them to time series to financial times or to other financial problems and in this
+
+32
+00:03:25,859 --> 00:03:33,319
+case here I've presented work at past seminars about using transformer based models say for
+
+33
+00:03:33,319 --> 00:03:39,000
+momentum strategies and in this case we look at generative models but it's effectively
+
+34
+00:03:39,000 --> 00:03:43,840
+the same techniques used in language models but not applied to language but applied to
+
+35
+00:03:43,840 --> 00:03:49,199
+some form of market data and in our case it will be exchange messages but I would say
+
+36
+00:03:49,199 --> 00:03:54,379
+if it's one thing that don't necessarily just focus on the language models applied to language
+
+37
+00:03:54,379 --> 00:03:59,519
+but think how those techniques can be useful for you in other contexts and I think that's
+
+38
+00:03:59,520 --> 00:04:05,560
+where there's a lot of potential generally speaking so this is just an image of the computational
+
+39
+00:04:05,560 --> 00:04:14,939
+graph of some of these large language models provided by graph courses here so let's just
+
+40
+00:04:14,939 --> 00:04:19,519
+move to microstructure data and yeah I will keep it brief for this audience there I mean
+
+41
+00:04:19,519 --> 00:04:24,560
+maybe just making clear what a limit order book is I think most people in this audience
+
+42
+00:04:24,560 --> 00:04:29,800
+know so we have orders resonating exchange and we have those levels here people want
+
+43
+00:04:29,800 --> 00:04:36,040
+to buy they try to put in an order at a lower price here and hoping that someone will want
+
+44
+00:04:36,040 --> 00:04:40,720
+to buy from that it is lower price but if there's no matching order the orders will
+
+45
+00:04:40,720 --> 00:04:45,720
+just rest and stay as the exchange similarly people trying to sell the place orders at
+
+46
+00:04:45,720 --> 00:04:50,420
+a higher price because they want to sell at a higher price if there's no immediate match
+
+47
+00:04:50,420 --> 00:04:55,740
+those orders will just stay at an exchange until someone comes in with a little bit of
+
+48
+00:04:55,740 --> 00:05:00,740
+less patience and crosses the spread it will eventually take the liquidity so those are
+
+49
+00:05:00,740 --> 00:05:06,340
+the passive orders in the limit order book this is the resting liquidity at the limit
+
+50
+00:05:06,340 --> 00:05:12,980
+order book and you can think of the limit order book it's just a kind of state the exchange
+
+51
+00:05:12,980 --> 00:05:18,540
+keeps track of to be able to do its matching so what the exchange obviously receives it's
+
+52
+00:05:18,540 --> 00:05:24,740
+a different type of message stream people placing orders and canceling orders but internally
+
+53
+00:05:24,740 --> 00:05:29,980
+the exchange keeps track of those orders in this limit order book and that puts that representation
+
+54
+00:05:29,980 --> 00:05:35,500
+is quite useful as we know for example there could be some potential pressure of more people
+
+55
+00:05:35,500 --> 00:05:40,420
+wanting to buy building up lower in the order book before a price has actually changed if
+
+56
+00:05:40,420 --> 00:05:46,060
+you could somehow pick up those patterns we might be able to have some edge in forecasting
+
+57
+00:05:46,060 --> 00:05:51,699
+prices for example so yeah this is the limit order book and submit price which we see on
+
+58
+00:05:51,699 --> 00:05:56,339
+the screen is just this intersection between this top level which is the best bit and the
+
+59
+00:05:56,339 --> 00:06:03,019
+best ask there and then obviously when we see this price changing something is happening
+
+60
+00:06:03,019 --> 00:06:08,500
+for example in this case we could have a buy limit order coming in at a price high enough
+
+61
+00:06:08,500 --> 00:06:14,660
+that it matches some liquidity which was already there and in this case we see that this order
+
+62
+00:06:14,860 --> 00:06:20,460
+disappears and what we have is if it was a limit order we see that the remainder of this limit order
+
+63
+00:06:20,460 --> 00:06:27,300
+actually staying on in the book and as a result submit price is changing and what we also see is
+
+64
+00:06:27,300 --> 00:06:33,580
+that the price changes obviously as a consequence and we have two trades recorded here just because
+
+65
+00:06:33,580 --> 00:06:38,460
+there were two different sell orders so each are different counter parties so we have one trade
+
+66
+00:06:38,460 --> 00:06:44,020
+recorded for this one and one trade recorded for this one what the exchange has to do is just do
+
+67
+00:06:44,019 --> 00:06:49,699
+this matching and records the trades so everyone knows where the money is exchanging and where the
+
+68
+00:06:49,699 --> 00:06:56,139
+financial instruments it's going but obviously it helps for us to understand what is going on
+
+69
+00:06:56,139 --> 00:07:02,459
+behind the scenes and obviously as you know there's a whole other bunch of orders in this
+
+70
+00:07:02,459 --> 00:07:07,779
+case the limit order kept a remainder it could have been an IOC for example in which case there
+
+71
+00:07:07,779 --> 00:07:12,659
+would have been nothing remaining if we would have had a wider spread but generally speaking it is
+
+72
+00:07:12,660 --> 00:07:17,900
+quite instructive to look at those limit order books when trying to make predictions of where
+
+73
+00:07:17,900 --> 00:07:23,420
+prices are moving and this is exactly an area where people have been looking into applying
+
+74
+00:07:23,420 --> 00:07:30,660
+machine learning techniques and just for the terminology so there are different types of data
+
+75
+00:07:30,660 --> 00:07:37,180
+people often refer to the L1 data which is the top of book data and oftentimes when people speak
+
+76
+00:07:37,180 --> 00:07:44,019
+about L1 data they also include the trades there which is some additional quite valuable information
+
+77
+00:07:44,019 --> 00:07:50,460
+as well because obviously when a trade happens money really exchange hands which is not necessarily
+
+78
+00:07:50,460 --> 00:07:57,819
+the case for some orders being placed and cancelled on the exchange so there's some more commitment in
+
+79
+00:07:57,819 --> 00:08:03,939
+there so potentially there are some more alpha to be extracted potentially from trades and this is
+
+80
+00:08:03,939 --> 00:08:08,819
+often included in the data stream of L1 if you ask a data provider for L1 data you probably got
+
+81
+00:08:08,819 --> 00:08:17,220
+the top of book plus the trades attached to it and again not every top of book change will there be a
+
+82
+00:08:17,220 --> 00:08:26,579
+change a trade happening it is only a fraction of updates that a trade actually happens the next one
+
+83
+00:08:26,579 --> 00:08:33,700
+here is the L2 data which is commonly referred to as limit order books and this is what usually if
+
+84
+00:08:33,700 --> 00:08:41,220
+you looked at academic literature and limit order books it usually refers to those L2 data or LOB data
+
+85
+00:08:41,220 --> 00:08:46,500
+and I only wanted to make the difference because actually there's this as of you here's the the
+
+86
+00:08:46,500 --> 00:08:52,660
+S3 data or the full limit order book data which is something which hasn't really that much been
+
+87
+00:08:52,660 --> 00:09:01,259
+explored in the academic context which is the exact content of the order book this is also
+
+88
+00:09:01,259 --> 00:09:07,819
+something important to some extent because it has additional information but it's something actually
+
+89
+00:09:07,819 --> 00:09:13,419
+harder to model you can imagine like well how hard is this actually to model this one here with a
+
+90
+00:09:13,419 --> 00:09:19,340
+data-driven approach what kind of representation do I use to model this type of limit order book
+
+91
+00:09:19,340 --> 00:09:24,700
+data which is something we will get into later but it might even be more complicated to model this
+
+92
+00:09:24,700 --> 00:09:29,740
+type of data it's not a really clear structure because in principle the number of orders on each
+
+93
+00:09:29,740 --> 00:09:36,700
+level is not fixed but you can very easily imagine that there is additional information
+
+94
+00:09:37,659 --> 00:09:44,620
+in this data even if it looks the same this and this whether this is one big order and this is
+
+95
+00:09:44,620 --> 00:09:49,899
+a hundred small orders there is clearly some difference there in information content and also
+
+96
+00:09:49,899 --> 00:09:56,620
+where the price might be going it might also be interesting to know this order at the top when
+
+97
+00:09:56,620 --> 00:10:04,220
+was it actually placed was it placed very shortly after a price changed or is it something where
+
+98
+00:10:05,019 --> 00:10:11,100
+was it placed maybe deeper in the book without much relation to price changes so this is something
+
+99
+00:10:11,100 --> 00:10:16,060
+quite interesting and we actually have some ongoing work which is hopefully coming out in
+
+100
+00:10:16,060 --> 00:10:21,659
+a month or so where we use some unsupervised learning so obviously we do not know the
+
+101
+00:10:21,659 --> 00:10:27,339
+counterpart is here but what we try to do is we do some clustering using some features such as
+
+102
+00:10:27,339 --> 00:10:32,379
+time since the order was placed since the last price move where we try to cluster those orders
+
+103
+00:10:32,379 --> 00:10:37,659
+into different groups could it be a market maker an hft could it be some institutional client
+
+104
+00:10:37,659 --> 00:10:42,059
+and like seeing once we have clusters do these different clusters actually have different
+
+105
+00:10:42,059 --> 00:10:48,699
+predictability is it maybe that a cluster of hfts has more far imbalanced this cluster has maybe
+
+106
+00:10:48,700 --> 00:10:53,980
+more forecastability over a shorter period of time than they say the institutional flow so
+
+107
+00:10:53,980 --> 00:10:59,340
+there's some interesting structure here which you can extract and we have some ongoing work on it i
+
+108
+00:10:59,340 --> 00:11:05,420
+just wanted to flag it here because if you go into the normal kind of traditional academic literature
+
+109
+00:11:05,420 --> 00:11:10,700
+limit all the books it usually just stops here and people don't even question what is beyond this so
+
+110
+00:11:10,700 --> 00:11:16,379
+i saw this actually good to just point it out in this introduction section here but obviously
+
+111
+00:11:16,620 --> 00:11:21,659
+this data structure is quite complicated if you think about how to store it in a data frame because
+
+112
+00:11:21,659 --> 00:11:28,379
+it it is not really clear very defined how many orders they actually are so the way how this data
+
+113
+00:11:28,379 --> 00:11:35,340
+is usually broadcast is in this mbo stream which is the messages there is the individual orders
+
+114
+00:11:35,340 --> 00:11:40,700
+coming in which incrementally change this limit order book which is how you usually receive this
+
+115
+00:11:41,660 --> 00:11:48,060
+data from an exchange so yeah for the first instance let's just focus then on the limit
+
+116
+00:11:48,060 --> 00:11:53,259
+order book data which is as i said what most academic work is focused on so just quickly to
+
+117
+00:11:53,259 --> 00:12:01,100
+recap this is a picture from our deep log paper it's already a bit older paper now from 2019
+
+118
+00:12:02,060 --> 00:12:05,500
+but it has been quite popular in in
+
+119
+00:12:08,300 --> 00:12:13,180
+applications by practitioners and also some follow-up papers there's some interesting work
+
+120
+00:12:13,180 --> 00:12:17,899
+by pata korn which looks at all the flow imbalances but effectively they use a similar
+
+121
+00:12:17,899 --> 00:12:22,940
+architecture to what we use here in deep log while but don't apply it to raw limit all the
+
+122
+00:12:22,940 --> 00:12:27,899
+book data so what we try to do is they said okay what if we wanted to do some forecasting and we
+
+123
+00:12:27,899 --> 00:12:32,939
+want to read in limit order books or say not just one limit order book but say a sequence like the
+
+124
+00:12:32,939 --> 00:12:39,340
+last hundred limit order books how do we actually do that how do we process this data so the way
+
+125
+00:12:39,340 --> 00:12:45,100
+how we did it here we looked at say 100 limit order books and we use tick time here tick time
+
+126
+00:12:45,100 --> 00:12:51,340
+is nice event time because it's somewhat self-normalizing if markets are a bit more active
+
+127
+00:12:51,340 --> 00:12:57,500
+ticks happen faster if markets slow down ticks are more sporadic or across instruments one
+
+128
+00:12:57,500 --> 00:13:02,700
+instrument is just a bit more liquid than another one but this just happens that time somewhat runs
+
+129
+00:13:02,700 --> 00:13:08,059
+faster for this instrument but if you use tick time it's somewhat self-normalizing and it helps
+
+130
+00:13:08,059 --> 00:13:14,539
+when building one model for a pooled class of instruments at once there so we take this limit
+
+131
+00:13:14,539 --> 00:13:21,340
+order book and we look each column here is one limit order book and what we have here in the
+
+132
+00:13:21,340 --> 00:13:27,580
+rows we have here the prices 10 on each side so there are 20 rows and sizes 10 on each side
+
+133
+00:13:27,580 --> 00:13:33,019
+there for most equity markets if the order books are dense you wouldn't really have to take
+
+134
+00:13:33,019 --> 00:13:38,220
+track of all the 10 price levels you could just say i keep track of the mid price and the spread
+
+135
+00:13:38,220 --> 00:13:42,460
+that would generally be enough but here we kept it generally and we just kept track of all the
+
+136
+00:13:42,460 --> 00:13:49,019
+prices and those are the 100 ticks and what do these colors represent so what we do is so again
+
+137
+00:13:49,019 --> 00:13:53,259
+normalization is key if you want to build a deep learning model a lot of the exercise we need to
+
+138
+00:13:53,259 --> 00:13:57,819
+how can we actually normalize the data and be able to build a model especially if you want to have one
+
+139
+00:13:57,819 --> 00:14:03,579
+model for different instruments and what we do here we keep some form of running average so
+
+140
+00:14:03,579 --> 00:14:09,259
+some running that score and we normalize everything by some running that score so if it's a brighter
+
+141
+00:14:09,259 --> 00:14:15,100
+color it means it's higher than its recent past could be over the last six hours we keep the value
+
+142
+00:14:15,100 --> 00:14:21,259
+and then we see is it higher or lower and darker color means lower and you can actually see some
+
+143
+00:14:21,259 --> 00:14:30,540
+interesting pattern here this is the sizes so here we see increased size on the bit and slightly
+
+144
+00:14:30,540 --> 00:14:36,220
+later the price actually went up here and you see those colors mainly move in sync which is what i
+
+145
+00:14:36,220 --> 00:14:41,740
+mentioned we wouldn't really really need to keep track of all the 10 level prices probably mid
+
+146
+00:14:41,740 --> 00:14:46,940
+price and spread would be enough in practice but this is what we do here in this paper and we say
+
+147
+00:14:46,940 --> 00:14:52,379
+well if we can somewhat spot by eye what's going on surely some algorithm ought to be able to do
+
+148
+00:14:52,379 --> 00:14:57,899
+that and given this representation which is just a data frame but it looks a little bit like an image
+
+149
+00:14:57,899 --> 00:15:02,779
+these things that actually techniques from image recognition can be quite good and we actually use
+
+150
+00:15:02,779 --> 00:15:08,779
+some convolutional filters here the basic idea is if you're good to learn an imbalance here the same
+
+151
+00:15:08,779 --> 00:15:14,139
+definition of imbalance ought to work here as well sometime earlier so we wouldn't have to
+
+152
+00:15:14,139 --> 00:15:20,860
+relearn imbalance and that is exactly what kind of convolutional filters do is you you learn some
+
+153
+00:15:20,860 --> 00:15:26,059
+joint filters which in images are kind of like if i learn a feature for this part of the image
+
+154
+00:15:26,059 --> 00:15:29,899
+the feature should be the same for the other part of the image that's the basic idea here
+
+155
+00:15:30,459 --> 00:15:35,019
+so this is the basic setup and i don't go into all the details because it's some earlier paper
+
+156
+00:15:35,019 --> 00:15:39,819
+but basically we have some sequence of limit order books and we want to make some predictions
+
+157
+00:15:39,819 --> 00:15:47,019
+of future price moves this could be returns in a regression problem it could be quantiles
+
+158
+00:15:47,019 --> 00:15:52,139
+of returns it could also be a classification problem where we threshold it and say if the
+
+159
+00:15:52,139 --> 00:15:57,019
+price goes above or below a certain threshold and obviously we have to set some horizon sometimes we
+
+160
+00:15:57,019 --> 00:16:02,539
+look at 50 ticks into the future 100 ticks into the future or you could also say well maybe i want
+
+161
+00:16:02,620 --> 00:16:07,980
+to have a whole range i want 50 100 150 200 because maybe for the problem i'm interested
+
+162
+00:16:07,980 --> 00:16:12,699
+there could be some maybe some price drift and some reverses so maybe want to know how the price
+
+163
+00:16:12,699 --> 00:16:18,299
+is evolving so in general it could be some multi multi horizon prediction tasks there and this is
+
+164
+00:16:18,299 --> 00:16:23,019
+exactly what we did in our earlier work and i just wanted to mention that there we already found some
+
+165
+00:16:23,019 --> 00:16:28,939
+analogy with language models because effectively the structure we have here is quite similar to
+
+166
+00:16:28,940 --> 00:16:34,060
+what you have in some translation algorithm we have some english sentence there's a model which
+
+167
+00:16:34,060 --> 00:16:39,820
+builds up a state of this sentence here over time and it creates this thing which is known as a
+
+168
+00:16:39,820 --> 00:16:46,460
+context vector basically which then it and then using the context vector we now start to reconstruct
+
+169
+00:16:46,460 --> 00:16:51,900
+this sentence in a different language in this case french for example and this is exactly how
+
+170
+00:16:51,900 --> 00:16:57,340
+language models work the way how you train us you fix this one here you fix the input and output and
+
+171
+00:16:57,340 --> 00:17:04,140
+the model has to optimize it parameters so it can learn a useful representation from which it can
+
+172
+00:17:04,140 --> 00:17:10,940
+reproduce the sentence there so the this context factor is a bit like some artificial language the
+
+173
+00:17:10,940 --> 00:17:16,539
+computer learns or the machine the algorithm learns from which it can then reproduce the
+
+174
+00:17:16,539 --> 00:17:21,740
+sentence it's a bit like it translates to its own language and then from its own language to
+
+175
+00:17:21,740 --> 00:17:26,940
+friends there and from a finance point of view we can think of it this is the state of the market i
+
+176
+00:17:26,940 --> 00:17:32,539
+want to somewhat take the input data learn the state of the market and using the state of the
+
+177
+00:17:32,539 --> 00:17:37,740
+market i want to make predictions basically this is the basic setup and technically speaking in
+
+178
+00:17:37,740 --> 00:17:43,259
+language models this one is called the encoder the other one is called the decoder and those models
+
+179
+00:17:43,259 --> 00:17:50,620
+here um this is a sequence to sequence model very typical model for translation and our some of our
+
+180
+00:17:50,620 --> 00:17:54,940
+earlier works we actually showed that this is the model which you can use for this limit order book
+
+181
+00:17:54,940 --> 00:18:00,299
+forecasting and what we have also seen is that you can do a bit better if you use attention one
+
+182
+00:18:00,299 --> 00:18:07,340
+problem here with this is that pass this information one to the other it's very difficult for the model
+
+183
+00:18:07,340 --> 00:18:12,779
+to learn long-term dependencies if it was relevant here and it's irrelevant here the model will kind
+
+184
+00:18:12,779 --> 00:18:19,420
+of forget the information halfway through so it's not really good in learning long-term dependencies
+
+185
+00:18:19,420 --> 00:18:24,460
+but you can ratify it if you include what is known attention and the meaning is very simple
+
+186
+00:18:24,539 --> 00:18:29,740
+is exactly what it means you have those extra weights which is not just looking back at its
+
+187
+00:18:29,740 --> 00:18:35,180
+last memory unit but you can look at a given number of memory units and you can learn to pay
+
+188
+00:18:35,740 --> 00:18:41,100
+more attention to something further in the past and that helps you to deal with certain long-term
+
+189
+00:18:41,100 --> 00:18:47,019
+dependencies so this is exactly how attention works so now we have a setup of sequence to
+
+190
+00:18:47,019 --> 00:18:52,380
+sequence learning and attention learning and this is something we did in an earlier work and i won't
+
+191
+00:18:52,380 --> 00:18:57,100
+show all the results which are in the paper and i had presented it at other events because this is
+
+192
+00:18:57,100 --> 00:19:03,260
+not really the main topic of the paper but i just wanted to say that we did have quite some work the
+
+193
+00:19:03,260 --> 00:19:09,820
+deep log paper which is the one where we initially introduced this architecture with which uses tnns
+
+194
+00:19:09,820 --> 00:19:16,540
+and lsdms as well as this follow-up paper which was published in risk i see mar was sitting here
+
+195
+00:19:17,180 --> 00:19:23,420
+which is one which looked at this multi-horizon forecasting where we already make this link
+
+196
+00:19:23,420 --> 00:19:27,339
+to translation algorithms where we use those techniques from sequence to sequence
+
+197
+00:19:27,339 --> 00:19:32,859
+and attention which are used in translation to do better forecasting so i just wanted to
+
+198
+00:19:32,859 --> 00:19:39,740
+quickly give an like some background over those models and and and show that in those older papers
+
+199
+00:19:39,740 --> 00:19:45,339
+we already made links to language models but now what i really want to do is move to this new work
+
+200
+00:19:45,339 --> 00:19:51,819
+on generative ai modeling where we really take it one step further in the analogy to language
+
+201
+00:19:51,819 --> 00:19:57,099
+modeling which i think will be quite a bit more exciting and as i mentioned this work is based on
+
+202
+00:19:57,099 --> 00:20:06,859
+a recent work from um from last september it is a work which was published in ikive conference and
+
+203
+00:20:06,859 --> 00:20:12,299
+actually it's part of two papers you will see later that to be able to build the generative
+
+204
+00:20:12,299 --> 00:20:18,539
+ai model we actually had to build a microstructure simulator because it needs
+
+205
+00:20:19,259 --> 00:20:24,700
+simulation it needs to you need to rebuild the limit order book by replaying the messages to be
+
+206
+00:20:24,700 --> 00:20:29,579
+able to build up the limit order book and because we need to apply it many times in the training
+
+207
+00:20:29,579 --> 00:20:36,379
+loop we needed to speed it up and actually build a limit order book simulator which runs on gpu's
+
+208
+00:20:36,379 --> 00:20:41,659
+so it's this is actually a part of two papers the one paper which is this one here which is
+
+209
+00:20:41,660 --> 00:20:48,300
+the generative ai model and the underlying work which is actually the gpu-based market simulator
+
+210
+00:20:48,300 --> 00:20:55,500
+which is the one which won the ikive based paper award last year so i didn't expect anyone be so
+
+211
+00:20:55,500 --> 00:21:00,779
+interested in in limit order book simulators that's okay with the best paper award but apparently
+
+212
+00:21:00,779 --> 00:21:06,620
+people like those limit order book simulations so yeah i'm not alone with uh liking limit order
+
+213
+00:21:06,620 --> 00:21:12,220
+books there but yeah let's get to it so we already got to know the l3 data so that's good everyone
+
+214
+00:21:12,220 --> 00:21:18,460
+now knows what l3 data is but as i mentioned this l3 data doesn't come like this we can't really
+
+215
+00:21:18,460 --> 00:21:24,140
+easily kind of give it to the algorithm it's not a very nice data representation and it also doesn't
+
+216
+00:21:24,140 --> 00:21:31,100
+come in this it's very big if you were to actually have it in this form um every update so the way
+
+217
+00:21:31,100 --> 00:21:37,260
+how it actually comes is in form of this mbo messages there so this is how it will look like
+
+218
+00:21:37,260 --> 00:21:43,900
+so someone comes and says place the order to sell 10 lots at 10.7 so here you see the exchange just
+
+219
+00:21:43,900 --> 00:21:49,340
+places this order and now it's in a different state and now someone else says i want to buy 30
+
+220
+00:21:49,340 --> 00:21:55,180
+lots at this price here and a new order comes for me this is the top of the books this is the
+
+221
+00:21:55,180 --> 00:22:01,420
+end of the book further outwards and you see what you really see are those messages here another
+
+222
+00:22:01,420 --> 00:22:07,259
+one up there now those messages they are just the incremental changes and they are a bit easier to
+
+223
+00:22:07,259 --> 00:22:12,060
+process but there there's some funny ones there which are not so intuitive and the deep learning
+
+224
+00:22:12,060 --> 00:22:16,620
+algorithm doesn't really like them or any algorithm for that matter which are those ones
+
+225
+00:22:16,620 --> 00:22:24,140
+for example cancel order 4 7 4 9 20 there that's not very useful information obviously the exchange
+
+226
+00:22:24,220 --> 00:22:27,900
+knows what to do because it actually has a hash map of all the orders and it knows which price
+
+227
+00:22:27,900 --> 00:22:35,180
+level to find it it's a 10.9 and the exchange goes finds it and takes it off the level basically but
+
+228
+00:22:35,180 --> 00:22:40,300
+for the algorithm that's not very useful that the exchange can do it so it's not very nice to
+
+229
+00:22:41,020 --> 00:22:46,620
+to model this we don't really know much about it so we have to think about some ways how we actually
+
+230
+00:22:46,620 --> 00:22:53,980
+represent this data a little bit better and now the order's gone basically so what we do we do
+
+231
+00:22:53,980 --> 00:23:00,380
+some form of encoding of this first like some intuitive encoding so it makes much more sense
+
+232
+00:23:00,380 --> 00:23:06,220
+for the algorithm to say okay first i come up with some codes like place is action type one
+
+233
+00:23:06,779 --> 00:23:14,220
+cell is action minus one y would be action plus one and then say 10 well this is 10 basically
+
+234
+00:23:14,220 --> 00:23:19,500
+but then one thing is for example these absolute price values are not very helpful
+
+235
+00:23:19,500 --> 00:23:26,220
+basically so uh place an order where 10.7 well 10.7 is one thing now 10.7 is a whole different
+
+236
+00:23:26,220 --> 00:23:31,740
+thing tomorrow uh what you really want to know how far away is it from the mid price there so
+
+237
+00:23:31,740 --> 00:23:37,819
+it's actually one thing up it's on level one basically level plus one this would be level
+
+238
+00:23:37,819 --> 00:23:44,380
+plus two and so on so it is much better to give the prices where the orders are placed relative
+
+239
+00:23:44,380 --> 00:23:49,099
+to the mid price in units of ticks because that's much more intuitive is it at the top of the book
+
+240
+00:23:49,580 --> 00:23:54,380
+the book that has very different meaning and that's much more useful for the algorithm to know
+
+241
+00:23:54,380 --> 00:23:59,260
+then obviously there's some id and some time actually all these messages appear at a given
+
+242
+00:23:59,260 --> 00:24:05,580
+time i ignored the time uh so far and i could do the same here now it's just bias action plus one
+
+243
+00:24:05,580 --> 00:24:13,500
+30 level minus three here and then of some id so this is just some useful encoding and when i have
+
+244
+00:24:13,500 --> 00:24:19,420
+the cancel order i can just augment it with this information we know that cancelling it just needs
+
+245
+00:24:19,420 --> 00:24:24,859
+to give the id fair enough that the exchange can find it just giving this id but our algorithm
+
+246
+00:24:24,859 --> 00:24:29,420
+would like to see some more information so we just give it to it and say okay what what the person
+
+247
+00:24:29,420 --> 00:24:35,500
+wants to cancel is an order which we have identified is at level plus uh it's a cancel action
+
+248
+00:24:35,500 --> 00:24:42,140
+it's type three it's cancel the cancel is actually a sell order of type minus one it was actually of
+
+249
+00:24:42,220 --> 00:24:48,300
+size 50 and it's now actually sitting on the third level there so we can just give this information
+
+250
+00:24:48,300 --> 00:24:53,180
+we can look it up and find it and now it's much more useful for this information for example the
+
+251
+00:24:53,180 --> 00:24:59,340
+algorithm can see here someone is adding liquidity on this on the on the sell side adding liquidity
+
+252
+00:24:59,340 --> 00:25:04,460
+on the buy side here someone is taking away liquidity of a given unit from the sell side
+
+253
+00:25:04,460 --> 00:25:09,660
+deeper in the book so this is much more useful representation for the algorithm and now we can
+
+254
+00:25:09,660 --> 00:25:15,340
+hope that we just kind of stream this messages and try to use this information and in fact we
+
+255
+00:25:15,340 --> 00:25:20,779
+did this already some while back where we looked at some forecasting models such as deep log and
+
+256
+00:25:20,779 --> 00:25:27,259
+see can we actually just wasn't using limit order book states use this stream of messages in some
+
+257
+00:25:27,259 --> 00:25:34,540
+normalized form like this and take this as input and and we actually did this and we found there
+
+258
+00:25:34,539 --> 00:25:40,220
+was some additional information content the model could make use of which was orthogonal to just the
+
+259
+00:25:40,220 --> 00:25:45,659
+limit order books so if we added this model to the limit order books we increased our forecasting
+
+260
+00:25:45,659 --> 00:25:50,619
+performance there so the limit order books are good representations but there are some additional
+
+261
+00:25:50,619 --> 00:25:56,220
+representations in here which have some useful information content this model can pick up
+
+262
+00:25:56,220 --> 00:26:02,299
+something like the thing i mentioned earlier if you have size 100 and size 100 it seems to be no
+
+263
+00:26:02,299 --> 00:26:07,819
+imbalance but if this guy's 100 guys wanting to buy and this is just one but maybe the fact that
+
+264
+00:26:07,819 --> 00:26:15,019
+100 people want to buy such as something basically so there is more information in the full books and
+
+265
+00:26:15,019 --> 00:26:19,899
+this is something we can see it through we can build models in this type but it's interesting
+
+266
+00:26:19,899 --> 00:26:28,139
+to see that they actually get better in forecasting but what we want to do now is actually not look at
+
+267
+00:26:28,140 --> 00:26:34,620
+this forecasting stuff but we want to go a bit further and build this generative AI model and
+
+268
+00:26:34,620 --> 00:26:38,860
+the way how you should think a bit about it is if you have those sentences here you see a sentence
+
+269
+00:26:38,860 --> 00:26:44,220
+like never in the field of human conflict was so much owned by so many you ask okay how does this
+
+270
+00:26:44,220 --> 00:26:49,340
+sentence continue this one many of you might have guessed because it's a very famous quote from
+
+271
+00:26:49,340 --> 00:26:53,820
+winston church so i guess many would have figured out and even some chat gpt would have probably
+
+272
+00:26:53,819 --> 00:26:59,500
+been able to tell you how this sentence continued but the question is can you actually do something
+
+273
+00:26:59,500 --> 00:27:04,539
+similar with this market order what if i have those messages while we're having words i have
+
+274
+00:27:04,539 --> 00:27:13,019
+messages like place sellers 10 lots place buy of 30 lots at this price what is the next one and
+
+275
+00:27:13,819 --> 00:27:19,500
+you can't imagine that this is somewhat possible obviously languages the reason why you can
+
+276
+00:27:19,500 --> 00:27:24,859
+continue the sentences because there's obviously some very intricate relationships between all
+
+277
+00:27:24,859 --> 00:27:29,900
+these words which helps you to figure out some meaning of the sentence and then be able to
+
+278
+00:27:29,900 --> 00:27:37,579
+continue it in a sensible way but we also know that there exist relationships of similar type
+
+279
+00:27:37,579 --> 00:27:42,940
+also for messages i pointed out in some discussions earlier some very interesting work also by
+
+280
+00:27:42,940 --> 00:27:49,259
+bushaw on microscopic impact where you can look at actual correlation functions how much if i put a
+
+281
+00:27:49,259 --> 00:27:56,140
+large if i place a large limit order to buy now how does it actually potentially increase the
+
+282
+00:27:56,140 --> 00:28:02,059
+probability that someone wants to cancel one tick 50 ticks 100 ticks into the future and they are
+
+283
+00:28:02,059 --> 00:28:08,460
+actually very subtle correlations and those correlations in aggregate lead to price impact
+
+284
+00:28:08,460 --> 00:28:14,059
+because if i do something someone is likely to maybe if i place i'm trying pushing a bit the
+
+285
+00:28:14,059 --> 00:28:18,859
+market maybe someone will cancel on the other side of the book and as a result the price moves away
+
+286
+00:28:19,020 --> 00:28:24,780
+it's very subtle correlation in between all these different events but we could hope that if you
+
+287
+00:28:24,780 --> 00:28:31,580
+present enough data to a model that it can pick up those relationships and that's exactly what we
+
+288
+00:28:31,580 --> 00:28:39,900
+want to try in our work can we come up with a model which can actually do that and again there's
+
+289
+00:28:39,900 --> 00:28:46,540
+some further normalization going on so this is a bit of a complicated slide but let me try to walk
+
+290
+00:28:46,779 --> 00:28:51,659
+through it so what we do we take some other tricks from language models language models use something
+
+291
+00:28:51,659 --> 00:28:59,899
+which is called a tokenizer it tries to convert words of parts of words into tokens which is some
+
+292
+00:29:00,460 --> 00:29:06,859
+kind of countable object basically and it then uses those objects now it has a very nice dictionary
+
+293
+00:29:06,859 --> 00:29:13,899
+of say numbers and you can work with those objects we want to do the same because this allows us to
+
+294
+00:29:13,900 --> 00:29:19,660
+assign some cross entropy loss because now we can make it a little bit like we have different
+
+295
+00:29:19,660 --> 00:29:24,700
+classes which type of message is it we have something at least which is like nice and finite
+
+296
+00:29:24,700 --> 00:29:29,580
+and countable and we can assign a probability to each of these possible outcomes there and what we
+
+297
+00:29:29,580 --> 00:29:35,340
+do we have to tokenize it so as i mentioned for the first the first is the type here so we had like
+
+298
+00:29:35,340 --> 00:29:45,500
+place cancel the different types of modify and we just assign an id to that this this one here
+
+299
+00:29:45,500 --> 00:29:51,820
+cancel just the tokenizer just assign some number to it at thousand and five doesn't really matter
+
+300
+00:29:51,820 --> 00:29:57,500
+what it is it just means that it's a unique number basically and the same is true for this one here
+
+301
+00:29:57,500 --> 00:30:02,940
+this is the direction we had buy and sell again the tokenizer assigns a unique token to each of
+
+302
+00:30:02,940 --> 00:30:10,860
+them important thing is that action one and type one do not get assigned the same numbers there
+
+303
+00:30:10,860 --> 00:30:15,019
+because they are different types they get a different dictionary because a buy is not the same
+
+304
+00:30:15,019 --> 00:30:20,700
+as uh as a placement even though i use the same number one but they are used in different contexts
+
+305
+00:30:20,700 --> 00:30:27,900
+so i can't overlap my vocabulary here in this case then i have prices again i use the prices
+
+306
+00:30:27,900 --> 00:30:34,380
+relative to the mid price we go up and down 100 ticks from the mid price and just assign it a
+
+307
+00:30:34,380 --> 00:30:41,420
+token for level minus one or whatever level it is up to plus minus 100 and then we have the size as
+
+308
+00:30:41,420 --> 00:30:46,860
+well which get tokenized again the vocabulary is non-overlapping with the other one so the size
+
+309
+00:30:47,500 --> 00:30:53,500
+one is a unique token which is not the same as the token used for buy for example and then we
+
+310
+00:30:53,500 --> 00:30:58,220
+have some other quantities these are the ones we ignored a little bit which are times but if
+
+311
+00:30:58,220 --> 00:31:03,019
+you're actually simulating messages we want to know whether the next message came in like half
+
+312
+00:31:03,019 --> 00:31:10,940
+a second later or a millisecond later and actually we we have to encode as well the time of the
+
+313
+00:31:10,940 --> 00:31:16,380
+messages now those are very long numbers in in nanoseconds and they get tokenized into various
+
+314
+00:31:16,380 --> 00:31:23,339
+tokens here you see there's a bunch of tokens to tokenize this longer number in nanoseconds
+
+315
+00:31:23,500 --> 00:31:28,700
+and now what i mentioned earlier we had this issue where some cancellation actually referred
+
+316
+00:31:28,700 --> 00:31:35,180
+to an older message i just had the id and obviously it might be useful to know some
+
+317
+00:31:35,180 --> 00:31:41,259
+properties about the order i'm actually canceling this is why whenever we have a cancellation we
+
+318
+00:31:41,259 --> 00:31:47,740
+add the reference metrics reference information here in this case we are canceling an order
+
+319
+00:31:48,299 --> 00:31:54,940
+and it's now nine levels down but when it was actually placed it was eight levels down it was
+
+320
+00:31:54,940 --> 00:31:59,900
+placed at the same size 100 is a full cancel but it could have been partially canceled down already
+
+321
+00:31:59,900 --> 00:32:07,579
+before and it was at this time difference basically at this time before so we actually
+
+322
+00:32:07,579 --> 00:32:12,859
+have this time information as well so each order each message has its own information which is
+
+323
+00:32:12,860 --> 00:32:17,420
+enough if it's a placement but if it's a cancellation it will also have the information
+
+324
+00:32:17,420 --> 00:32:23,340
+from when it was originally placed which is quite useful information to have as well for the model
+
+325
+00:32:23,340 --> 00:32:28,380
+and then what you get is this really large string of tokens there and this is how the messages come
+
+326
+00:32:28,380 --> 00:32:33,180
+in so effectively we have this tokenizer we tokenize all these messages and now those tokens
+
+327
+00:32:33,180 --> 00:32:41,820
+are streamed to the model basically so um so this is how it is built and here's kind of where the
+
+328
+00:32:41,819 --> 00:32:46,779
+architecture comes in we have this stream of messages here and we go
+
+329
+00:32:49,419 --> 00:32:56,460
+500 messages into the past we have the last 500 messages coming in they are tokenized they go
+
+330
+00:32:56,460 --> 00:33:02,460
+into the model and then we use something which is s5 as a state space model something quite
+
+331
+00:33:02,460 --> 00:33:08,299
+interesting and i won't go much into the details but it's something which has been uh started to
+
+332
+00:33:08,299 --> 00:33:12,940
+be used more and more in time series modeling rather than having a transformer based architecture
+
+333
+00:33:12,940 --> 00:33:17,659
+with attention is this state space models which is very good i mean if one thing you want to take
+
+334
+00:33:17,659 --> 00:33:22,700
+away it's a very efficient model which is good at learning long-term dependencies and we thought
+
+335
+00:33:22,700 --> 00:33:28,139
+this state-based models is a quite good fun for this type of data and then what we do is actually
+
+336
+00:33:28,139 --> 00:33:34,700
+we also found from some of our previous work and from experiments in this one that limit order
+
+337
+00:33:34,700 --> 00:33:41,259
+books are very good representation of the data we can already see some imbalances by i building up
+
+338
+00:33:41,259 --> 00:33:48,140
+so we can definitely help the model by giving it the limit order book snapshot the information
+
+339
+00:33:48,940 --> 00:33:53,660
+here if you have a long enough stream of messages you could rebuild yourself the limit order book
+
+340
+00:33:53,660 --> 00:33:58,940
+but it's just additional an additional requirement that we have to force the model to learn this
+
+341
+00:33:58,940 --> 00:34:04,140
+representation itself if we already know that it is a good representation so we also feed
+
+342
+00:34:04,140 --> 00:34:09,980
+in this limit order book which we process with a separate model and then this models here combine
+
+343
+00:34:09,980 --> 00:34:16,380
+and what the model is trying to do is try to predict the next message basically and the way
+
+344
+00:34:16,380 --> 00:34:23,820
+how it does it because we have a tokenization we can use a cross entropy loss like if it was
+
+345
+00:34:23,820 --> 00:34:29,260
+a classification problem there just it's like a finite number of classes it has its options here
+
+346
+00:34:29,260 --> 00:34:35,100
+and it will give give us a probability for each of one the model's output is a probability over
+
+347
+00:34:35,100 --> 00:34:40,220
+messages and we just sample from this one and now we can sample a new message which could be this
+
+348
+00:34:40,220 --> 00:34:46,860
+message here and this would be the next step prediction but what we can do nothing is stopping
+
+349
+00:34:46,860 --> 00:34:53,260
+us now from sticking this message back into the model updating the limit order book and running it
+
+350
+00:34:53,260 --> 00:34:57,580
+forward one more step and one more step and one more step and continuing running it forward that's
+
+351
+00:34:57,579 --> 00:35:04,299
+exactly how the generative model works there are a few caveats here and one caveat is that at each
+
+352
+00:35:04,299 --> 00:35:10,139
+step we need to simulate this thing we need to replay the limit order book as if the exchange
+
+353
+00:35:10,139 --> 00:35:13,980
+would do so we need a good simulator which is something i mentioned earlier which we built
+
+354
+00:35:13,980 --> 00:35:20,460
+in some earlier work and there is this form of you might call it hallucinations to kind of connect
+
+355
+00:35:20,460 --> 00:35:26,940
+to some phrases using that language model but there is just things which can go wrong here
+
+356
+00:35:26,940 --> 00:35:32,300
+where the model says well i want to cancel the order of this id and it's just not there basically
+
+357
+00:35:32,300 --> 00:35:39,500
+so so and and in this case we can basically say well this is not a valid answer let's go again
+
+358
+00:35:39,500 --> 00:35:45,420
+basically so we have this error correction loop where it tries to correct itself and we have been
+
+359
+00:35:45,420 --> 00:35:50,780
+seeing that the better the model gets the more data we have the need for this error correction
+
+360
+00:35:50,780 --> 00:35:56,780
+gets less so it gets much more sensible in the type of data it produces that in a nutshell i
+
+361
+00:35:57,660 --> 00:36:03,260
+know i'm skipping a lot of details here but kind of just to give you the intuitive idea this is
+
+362
+00:36:03,260 --> 00:36:10,780
+basically how the models work and now we have like some six months data here for training and we use
+
+363
+00:36:10,780 --> 00:36:17,500
+google and intel just to like i said two nastak stocks one is actually a large stick and the small
+
+364
+00:36:17,500 --> 00:36:23,980
+tick stock or the other way around actually so we have like two different types of instruments to
+
+365
+00:36:23,980 --> 00:36:29,260
+the results look different for large tick and small tick stocks and also google is a very liquid
+
+366
+00:36:29,260 --> 00:36:35,179
+name so we also see i mean we wouldn't expect to be as much predictability as an other instrument
+
+367
+00:36:35,179 --> 00:36:39,980
+so if it works for google well it hopefully works well for other ones so we just tested it on those
+
+368
+00:36:39,980 --> 00:36:46,860
+and as i said what we always do is we take 500 messages as input then we predict the next message
+
+369
+00:36:46,860 --> 00:36:52,380
+by the model generates the probabilities we sample a new message and then we put it back in and do
+
+370
+00:36:52,380 --> 00:36:58,380
+another time and we do this rolling forward 100 steps so we can really take a step and then run it
+
+371
+00:36:58,380 --> 00:37:07,099
+forward for 100 ticks just using this kind of artificial roll forward mode and first thing to
+
+372
+00:37:07,099 --> 00:37:15,019
+look at is kind of well do we get some reasonable distributions for this output there for example
+
+373
+00:37:15,740 --> 00:37:21,579
+just something very basic like if you looked at what is the fraction of new placements cancellation
+
+374
+00:37:21,579 --> 00:37:30,139
+or deletions or the amount of actually traits being executed ideally we get somewhat similar
+
+375
+00:37:30,139 --> 00:37:36,860
+proportions here then we see in reality and you can see actually the generated data and the real
+
+376
+00:37:36,860 --> 00:37:42,860
+data you know obviously we have historical data we just stop here now we run it forward using the
+
+377
+00:37:42,860 --> 00:37:47,659
+generative model for 100 ticks but we also saw what happens in reality in 100 ticks and we can
+
+378
+00:37:47,659 --> 00:37:52,379
+do the comparison here generated in red and the actual one in blue and we can see that the
+
+379
+00:37:52,379 --> 00:37:58,460
+statistics here align reasonably well we can do similar things as well if you look at the
+
+380
+00:38:00,379 --> 00:38:06,379
+the range of price moves here this is just the evolution of the future mid price could be that
+
+381
+00:38:06,379 --> 00:38:11,739
+maybe our model just the price never changes or the volatility is three times as high and it's
+
+382
+00:38:11,740 --> 00:38:18,700
+obviously non-trivial if you if the model only does one step at a time and you run it 100 steps
+
+383
+00:38:18,700 --> 00:38:23,260
+into the future if the model is a little bit off you can easily imagine how the whole thing just
+
+384
+00:38:23,260 --> 00:38:30,220
+blows off basically and suddenly the it's all over the place so it's quite interesting to see that we
+
+385
+00:38:30,220 --> 00:38:35,820
+actually get quite overlap a good overlap between the actual mid price evolution and the one of the
+
+386
+00:38:35,820 --> 00:38:42,940
+generated price move here and even for the times the times actually I mean if you think about
+
+387
+00:38:42,940 --> 00:38:47,019
+in tick space you don't really care about the time to say that's a new message let me just process it
+
+388
+00:38:47,019 --> 00:38:54,220
+I don't mind how much time actually passed but our model also generates the time there and this is a
+
+389
+00:38:54,220 --> 00:38:59,500
+quite difficult task we see we needed quite many tokens to represent the time and it actually and
+
+390
+00:38:59,500 --> 00:39:04,620
+the time is the only ones which has shared tokens the first times and you see that the distribution
+
+391
+00:39:05,179 --> 00:39:11,579
+of times between messages is actually quite closely matched so this is also a non-trivial
+
+392
+00:39:11,579 --> 00:39:16,380
+one because there was a lot of stuff which could go wrong with those time differences
+
+393
+00:39:16,380 --> 00:39:30,139
+as you were quite happy when we saw that and quite this one here um yeah this is a very small time I
+
+394
+00:39:30,139 --> 00:39:35,900
+think it's just maybe subsequent orders as it's probably I think it's just a time limit when you
+
+395
+00:39:35,900 --> 00:39:42,699
+have a um I think it's just the execution of multiple like there's one order coming in and
+
+396
+00:39:42,699 --> 00:39:47,900
+executes against multiple other ones for example like you saw at the very beginning you have this
+
+397
+00:39:47,900 --> 00:39:53,500
+one limit order coming in or one IOC and it trades against two different orders so they're kind of
+
+398
+00:39:53,500 --> 00:39:59,820
+recorded at the same time which is in our granularity is just shown here basically this
+
+399
+00:39:59,820 --> 00:40:06,380
+is in a site instantaneously which is just one action which might cause several trades subsequently
+
+400
+00:40:06,380 --> 00:40:10,940
+there so this is why it's shown it's like smallest time interval possible basically
+
+401
+00:40:13,260 --> 00:40:18,940
+and yeah what was quite interesting is that this obviously nice if you think about we generate
+
+402
+00:40:18,940 --> 00:40:22,460
+artificial data so it's actually quite nice that we get some reasonable distributions
+
+403
+00:40:22,539 --> 00:40:28,220
+but one thing we can obviously ask well if there's some form of imbalance in the data and if the
+
+404
+00:40:28,220 --> 00:40:35,740
+model really tries to pick up those things like impact of some previous order which is not driven
+
+405
+00:40:35,740 --> 00:40:39,980
+that the model would pick it up we might actually be able to see some form of correlation with
+
+406
+00:40:39,980 --> 00:40:46,059
+future price move and we can actually see that this model shows some quite good if you compare
+
+407
+00:40:46,059 --> 00:40:51,980
+the mid price evolution this is like a hundred ticks into the future and we look at the correlation
+
+408
+00:40:51,980 --> 00:40:59,340
+of the mid price it shows actually quite some significant correlation here for for google
+
+409
+00:40:59,340 --> 00:41:05,019
+it becomes insignificant after like 20 ticks but then for Intel it persists a bit longer
+
+410
+00:41:05,019 --> 00:41:09,340
+again it's because it's a large tick stock but it's quite interesting to see that they are
+
+411
+00:41:09,340 --> 00:41:15,019
+actual correlations so if you can imagine if there's some maybe a lot of bias happening which
+
+412
+00:41:15,019 --> 00:41:21,659
+we expect to eventually push the price upwards that the model picks up those incretices and then
+
+413
+00:41:21,659 --> 00:41:28,299
+is able to in its extrapolated sequence of messages actually maybe favor cancellations
+
+414
+00:41:28,299 --> 00:41:33,579
+on the other side of the book which caused the price actually to move upwards there and those
+
+415
+00:41:33,579 --> 00:41:39,819
+are the only results we have on this type of correlations in the actual paper but we are
+
+416
+00:41:39,819 --> 00:41:46,779
+currently looking in some follow-up work because obviously as I mentioned this the main reason for
+
+417
+00:41:46,780 --> 00:41:53,340
+building this model was for simulation studies of counterfactuals it's not just for the sake
+
+418
+00:41:53,340 --> 00:41:59,660
+of generating more data it's for having data in in situations which we didn't see in reality I
+
+419
+00:41:59,660 --> 00:42:05,500
+can look at historical data but if I'm simulating execution algorithm and I place a large market
+
+420
+00:42:05,500 --> 00:42:11,820
+order I do not know what would have happened in reality if I had placed this large market order
+
+421
+00:42:11,820 --> 00:42:17,180
+there's obviously the indirect impact which is not captured if I were just to replay my historical
+
+422
+00:42:17,180 --> 00:42:24,380
+market data which didn't see this large placement there so to be able to have a good replay we want
+
+423
+00:42:24,380 --> 00:42:30,380
+to be we want to use this generative AI model that's exactly the purpose why we built it so
+
+424
+00:42:30,380 --> 00:42:36,059
+one thing we're looking at right now is does it actually reproduce price impact what if I now
+
+425
+00:42:36,699 --> 00:42:42,860
+aggregated it and what if I pretend I executed a whole market order over a longer period of time
+
+426
+00:42:42,860 --> 00:42:48,460
+a matter order over a long period of time would I actually get the right aggregate impact of this
+
+427
+00:42:48,460 --> 00:42:53,019
+matter order this is something we're looking at right now which is non-trivial because we don't
+
+428
+00:42:53,019 --> 00:42:58,940
+put this in by hand one thing is if you say I built a generative model and I say I have a
+
+429
+00:42:59,739 --> 00:43:04,940
+GaN model and I fit it to match the first four moments and now it matches the first four
+
+430
+00:43:04,940 --> 00:43:09,740
+moments yeah but you build the model so it does it so there's no big surprise here but those are
+
+431
+00:43:09,740 --> 00:43:15,019
+all things we haven't built in we haven't put in that it should have correlations with the future
+
+432
+00:43:15,019 --> 00:43:20,619
+mid-price neither have you built in any of this impact relationships there and you know impact
+
+433
+00:43:20,619 --> 00:43:25,820
+is a bit like if you're a physicist it's a bit like statistical mechanics and thermodynamics so
+
+434
+00:43:26,539 --> 00:43:34,220
+you know it's it's non-trivial that the laws of mechanics in aggregate generate a phenomenological
+
+435
+00:43:34,220 --> 00:43:39,660
+law of a gas basically it's a non-trivial relationship and if we can see those relationships
+
+436
+00:43:39,660 --> 00:43:44,380
+appearing we get much more confidence in those models there so that's something we are doing
+
+437
+00:43:44,380 --> 00:43:51,660
+right now and follow up work we are also building a model where rather than testing right now our
+
+438
+00:43:51,660 --> 00:43:57,980
+loss function is only next message so or next token to be more precise so each time we check
+
+439
+00:43:57,980 --> 00:44:03,820
+it's a it's an autoregressive model where the loss is only looking at the next token but we see it's
+
+440
+00:44:03,820 --> 00:44:09,019
+actually quite good in generating whole sequences of tokens or messages hundred messages into the
+
+441
+00:44:09,019 --> 00:44:14,620
+future and what we are right now doing is also building a model where it actually has an additional
+
+442
+00:44:15,980 --> 00:44:21,500
+has an extra critic model which actually tries to then interrogate whether the whole sequence
+
+443
+00:44:22,140 --> 00:44:26,700
+good not just the next messages but i have a loss function for the next message but now i can step
+
+444
+00:44:26,700 --> 00:44:31,500
+back and generate a thousand messages is the whole sequence of thousand message is actually a good
+
+445
+00:44:31,500 --> 00:44:36,619
+one and we can have some extra step of learning to ensure that these are all some works which we
+
+446
+00:44:36,619 --> 00:44:43,179
+are looking in right now and maybe in a future seminar i might be able to update you on those
+
+447
+00:44:43,179 --> 00:44:49,179
+now towards the end i just wanted to quickly comment on where those models are actually used
+
+448
+00:44:49,179 --> 00:44:53,739
+for sometimes people wonder why i mean it seems to be quite some good forecastability
+
+449
+00:44:55,260 --> 00:44:58,300
+like why don't you just switch your money on and become a billionaire
+
+450
+00:44:58,780 --> 00:45:03,900
+like this so so is it too good to be true one thing to mention is obviously if you are forecasting
+
+451
+00:45:03,900 --> 00:45:10,060
+things say 50 tick into the future 100 ticks into the future there's only so much the price can
+
+452
+00:45:10,780 --> 00:45:18,780
+move in this period of time and obviously if you were to say aggressively aggressive is not a word
+
+453
+00:45:18,780 --> 00:45:24,620
+you may like so much in this presentation but take liquidity then you have to obviously overcome the
+
+454
+00:45:24,619 --> 00:45:29,739
+spread and maybe crossing the spread here and crossing the spread there is actually something
+
+455
+00:45:29,739 --> 00:45:35,259
+which can be very costly where maybe most of your signal is is gone now so this type of signal is
+
+456
+00:45:35,259 --> 00:45:41,420
+quite good when you look at something where you're say in an execution algorithm or market making
+
+457
+00:45:41,420 --> 00:45:45,980
+algorithm in the execution algorithm but you have to try it anyhow so we have to trade this larger
+
+458
+00:45:45,980 --> 00:45:52,299
+quantity we have to pay the fees anyhow so we don't have to overcome those but there it's a
+
+459
+00:45:52,300 --> 00:45:59,420
+whole different story where actually by maybe just anticipating or delaying certain orders
+
+460
+00:45:59,420 --> 00:46:05,420
+we might be able to largely monetize such an order but obviously only on flow which we are
+
+461
+00:46:06,220 --> 00:46:11,820
+already trading anyhow and similarly if you are a market maker you also generally capacity
+
+462
+00:46:12,460 --> 00:46:17,740
+limited where you have to get some passive fields and only on those passive fields you got can you
+
+463
+00:46:17,740 --> 00:46:23,100
+actually then monetize such type of signal this is just to provide some context of how it is used
+
+464
+00:46:23,100 --> 00:46:30,380
+and here's actually some snapshot of an actual execution algorithm from from a main group here
+
+465
+00:46:30,380 --> 00:46:35,260
+where you see this is the best best the best ask and you see these are passive orders which are
+
+466
+00:46:35,260 --> 00:46:41,020
+placed and canceled here so it's kind of chasing the market here but to fill here got another fill
+
+467
+00:46:41,020 --> 00:46:46,700
+but you can obviously see this algorithm here it's a very passive algorithm which just tries to
+
+468
+00:46:47,660 --> 00:46:55,100
+save enough spread by being as passive as it can be and it doesn't use any predictive signal in
+
+469
+00:46:55,100 --> 00:47:01,980
+here but you can see in cases like this if you had some good predictability of that the market
+
+470
+00:47:01,980 --> 00:47:08,380
+is going up at this stage you might very well try to cross the spread at this stage a bit earlier
+
+471
+00:47:08,380 --> 00:47:12,940
+rather than just chasing the market like it is done here so this is a type of application domain
+
+472
+00:47:12,940 --> 00:47:18,940
+if you ask where those type of models use they would be used in execution algorithm at at
+
+473
+00:47:19,500 --> 00:47:25,420
+various places banks or obviously hedge funds which has bespoke execution algorithms or in
+
+474
+00:47:25,420 --> 00:47:34,059
+the context of market making algorithms it is just such a the signal the the variability of
+
+475
+00:47:34,059 --> 00:47:38,940
+the price over such short periods of time it's just not large enough to turn it into a fully
+
+476
+00:47:38,940 --> 00:47:44,780
+liquidity taking strategy it just has to be used to modulate existing either execution flow
+
+477
+00:47:44,780 --> 00:47:49,659
+or passive flow coming in through a market making algorithm so that's the kind of typical use case
+
+478
+00:47:49,659 --> 00:47:57,579
+of such an algorithm and finally last slide something unrelated i just throw in we actually
+
+479
+00:47:57,579 --> 00:48:03,179
+have some other papers some new papers which came out very recently and one is in progress which i
+
+480
+00:48:03,179 --> 00:48:08,700
+just thought i mentioned related to lm's actually to do with language there so i just thought let me
+
+481
+00:48:08,700 --> 00:48:13,500
+mention them quickly the first one which has a funny name and i made this great image here with
+
+482
+00:48:14,780 --> 00:48:21,580
+which is the one called time machine gpt and it's a nice one which actually is a something quite
+
+483
+00:48:21,580 --> 00:48:26,700
+relevant i would say for people in finance which is often overlooked it's a it's a point in time
+
+484
+00:48:26,700 --> 00:48:32,780
+language model the main difference is that if you were to look at a language model and just said
+
+485
+00:48:32,780 --> 00:48:38,620
+you wanted to use a language model in some setting of a quantitative strategy you wouldn't
+
+486
+00:48:38,620 --> 00:48:42,940
+be able to back test it because you couldn't ensure that you don't have a look ahead buys
+
+487
+00:48:42,940 --> 00:48:49,660
+basically if i were to build a model which uses news to forecast volatility it will do a great
+
+488
+00:48:49,660 --> 00:48:57,180
+shot when it reads about lockdown in 2019 in china but in reality a language model 2019 would have
+
+489
+00:48:57,180 --> 00:49:02,380
+had the faintest clue what lockdown actually is and so well that's fine but it's going to continue
+
+490
+00:49:02,539 --> 00:49:08,140
+let's not bother basically whereas obviously a language model now would be all uh oh my god
+
+491
+00:49:08,140 --> 00:49:12,940
+the world is coming to an end basically similarly for other things like n1 or other so language
+
+492
+00:49:12,940 --> 00:49:18,539
+models use all kinds of data we don't even know what data runs into them and obviously we can't
+
+493
+00:49:18,539 --> 00:49:23,579
+use them in conjunction with any other time-series model and then be able to back test it just
+
+494
+00:49:23,579 --> 00:49:28,539
+doesn't work and how are we going to trust them i was just switching on the strategy without back
+
+495
+00:49:28,539 --> 00:49:33,179
+test and letting it run probably not there so what we try to do is we have this point in time
+
+496
+00:49:33,179 --> 00:49:40,539
+model the sequence of gpt2 models which has from 2007 till now which ensures there's only data for
+
+497
+00:49:40,539 --> 00:49:46,139
+this up to this year is going into the model basically it's it's trained brute force by just
+
+498
+00:49:48,380 --> 00:49:53,019
+new model for every year but it was quite some work which went into it to basically
+
+499
+00:49:53,019 --> 00:49:58,059
+rebuild wikipedia for every year by looking at all the page updates quite some work went
+
+500
+00:49:58,139 --> 00:50:02,779
+into it but i think if you are usually actually using this kind of language models
+
+501
+00:50:02,779 --> 00:50:08,860
+in a context of finance you really want to be able to have this possibility to back test them and i
+
+502
+00:50:08,860 --> 00:50:13,900
+think for this such models are quite useful and together with some researchers from princeton we
+
+503
+00:50:13,900 --> 00:50:18,699
+are also putting out a survey paper which hopefully comes by the end of this month make it first week
+
+504
+00:50:18,699 --> 00:50:24,460
+of june on kind of progress and prospects and challenges for large language models in finance
+
+505
+00:50:24,460 --> 00:50:29,740
+with lots of applications including time series modeling and usage of market data like i've shown
+
+506
+00:50:29,740 --> 00:50:35,260
+today but also the more traditional usages of language models using language actually so this
+
+507
+00:50:35,260 --> 00:50:41,980
+is just some recent work and with that i um blossomed to summarize quick quickly so i hope
+
+508
+00:50:41,980 --> 00:50:47,659
+we have seen that some of the techniques which are used in language models such as attention
+
+509
+00:50:47,659 --> 00:50:54,779
+and tokenization can be quite useful for finance but not necessarily by processing language
+
+510
+00:50:55,500 --> 00:50:59,819
+of financial news or something like this but actually applying those techniques to market data
+
+511
+00:50:59,819 --> 00:51:06,379
+time series data or even all the books or exchange messages there which in a sense are even closer
+
+512
+00:51:06,379 --> 00:51:11,099
+to language and time series data because those are actual messages there they have maybe more
+
+513
+00:51:11,099 --> 00:51:17,259
+resemblance of language than other parts of of finance and i've showcased you some of our earlier
+
+514
+00:51:17,260 --> 00:51:23,180
+work such as the deep log model as well as some multi horizon extension of that before showing
+
+515
+00:51:23,180 --> 00:51:28,460
+that actually beyond modeling limit order books it is really interesting to look at the actual
+
+516
+00:51:28,460 --> 00:51:34,460
+messages we are coming from the exchange which is called the mbo data and we have then seen this
+
+517
+00:51:34,460 --> 00:51:41,260
+genitive ai model which actually reads in those messages and tries to extrapolate the stream of
+
+518
+00:51:41,260 --> 00:51:48,860
+messages going into the future which helps us to generate artificial data which is of similar type
+
+519
+00:51:48,860 --> 00:51:54,940
+as historical data but is also conditioned to the recent past we have seen and this conditioning
+
+520
+00:51:54,940 --> 00:52:00,140
+actually allows the model to have a bit of forecastability i'm not sure whether i would
+
+521
+00:52:00,140 --> 00:52:05,180
+use this type of model for in forecasting tasks but definitely it is something which can be of
+
+522
+00:52:05,180 --> 00:52:11,580
+great importance if you wanted to simulate execution algorithms and have a good understanding
+
+523
+00:52:11,580 --> 00:52:19,020
+of market impact when you actually place different orders in your simulations than you had in reality
+
+524
+00:52:19,020 --> 00:52:23,820
+and you want to see how would that actually affected the market and we have lots of studies
+
+525
+00:52:23,820 --> 00:52:28,780
+where we look into this right now where we see how can we produce market impact can it maybe
+
+526
+00:52:28,780 --> 00:52:33,660
+reproduce a flash crash what if we put a really very big order when do we get out of distribution
+
+527
+00:52:33,739 --> 00:52:38,940
+all those are things which we are currently looking into and i think there's lots of
+
+528
+00:52:38,940 --> 00:52:46,059
+interesting follow-up work out of that and with that i thank you all and hopefully we have some
+
+529
+00:52:46,059 --> 00:52:48,619
+seven minutes left for questions yeah so thank you very much
+
+530
+00:52:55,500 --> 00:53:02,139
+well thank you so much for such a great talk and before we start the q a session i just wanted to
+
+531
+00:53:02,139 --> 00:53:07,579
+remind everyone that given that we have participants from different organizations please
+
+532
+00:53:08,299 --> 00:53:14,699
+do not share any sensitive for confidential information if you have any questions please
+
+533
+00:53:14,699 --> 00:53:24,539
+raise your hand thanks yeah firstly thank you for that very interesting a question on
+
+534
+00:53:25,500 --> 00:53:29,659
+the tokenization you use did you try different tokenizers and different encoding schemes and
+
+535
+00:53:29,659 --> 00:53:36,139
+how did that like performance change kept it very simple then we didn't try it much i mean because
+
+536
+00:53:36,139 --> 00:53:42,619
+we tried to kind of innovate more on the model side and not so much on the tokenizer it may be
+
+537
+00:53:42,619 --> 00:53:47,259
+worthwhile to get back and try different tokenizers but we were quite happy with the performance we
+
+538
+00:53:47,259 --> 00:53:52,460
+saw out of the box there actually the whole correlation of future mid-prizes we didn't expect
+
+539
+00:53:53,500 --> 00:53:58,940
+happier is that so yeah we didn't go back but it's like once we go and get into more details
+
+540
+00:53:58,940 --> 00:54:05,820
+and follow-up works it's definitely something we can go thank you obviously this is a very high
+
+541
+00:54:05,820 --> 00:54:11,820
+frequency data have you ever tried it with lower frequency data i'm guessing there's probably not
+
+542
+00:54:11,820 --> 00:54:17,179
+enough data to train the model but be interested to hear your thoughts on lower frequency data
+
+543
+00:54:17,980 --> 00:54:25,099
+yes i think the big question is obviously how do you represent the data here because obviously here
+
+544
+00:54:25,659 --> 00:54:31,420
+the way how it's constructed as a language is obviously important that it's sequence there it's
+
+545
+00:54:31,420 --> 00:54:35,739
+like if i have a sentence and i say i give you only every 100 words you wouldn't understand the
+
+546
+00:54:35,739 --> 00:54:41,980
+thing would you and so um it's it's the same thing so if i if i down sample it that's a different
+
+547
+00:54:41,980 --> 00:54:47,259
+actually interesting question maybe destroying some other things we once i once had some students
+
+548
+00:54:47,259 --> 00:54:52,380
+look into what's actually a nice way of down sampling data because obviously say the last
+
+549
+00:54:52,380 --> 00:54:56,940
+wise shot is not a good summarization of what's happening the whole minute what about the last
+
+550
+00:54:56,940 --> 00:55:01,180
+imbalance probably needs that maybe some aggregate but how do you actually integrate all this
+
+551
+00:55:01,180 --> 00:55:06,700
+information it's a good question it's something you have to address this first before you do that
+
+552
+00:55:06,700 --> 00:55:10,780
+actually and then one minute in one stock might mean something like one minute in google doesn't
+
+553
+00:55:10,780 --> 00:55:17,340
+mean the same as one minute in interest there so by sticking with the whole stream of messages
+
+554
+00:55:18,059 --> 00:55:23,100
+down to the tick level no matter how much time that actually takes is nice because you have in
+
+555
+00:55:23,100 --> 00:55:29,019
+a sense the full sentence there once you start down sampling it gets a bit more tricky and you
+
+556
+00:55:29,019 --> 00:55:34,300
+have to ask all those questions actually how how am i going to down sample it and how does it still
+
+557
+00:55:34,300 --> 00:55:40,300
+make sense how do i represent all the information in between it could be that and i mean one way of
+
+558
+00:55:40,300 --> 00:55:45,100
+doing it that's what i thought for this project for a student which hasn't shown up yet is the
+
+559
+00:55:45,099 --> 00:55:49,339
+it could be some form of encoder which processes the ticks in one minute and then maybe gives the
+
+560
+00:55:49,339 --> 00:55:54,059
+summarization which is some internal state of this encoder or maybe something like an autoencoder
+
+561
+00:55:54,059 --> 00:56:00,139
+which summarizes all the microstructure data over a minute to give me a good minutely representation
+
+562
+00:56:00,139 --> 00:56:04,860
+there but you have to figure this bit out first before you can then make sense and then maybe
+
+563
+00:56:05,420 --> 00:56:12,940
+uh a bespoke model could be built for this down sample data but i do think this this type of
+
+564
+00:56:12,940 --> 00:56:18,380
+model it makes more sense on the fine grained level exactly as the analogy it doesn't make
+
+565
+00:56:18,380 --> 00:56:23,420
+much sense to look at the at language every hundreds words so it's kind of the same thing
+
+566
+00:56:23,420 --> 00:56:28,940
+basically so unless you have a good summarization of the text then you can apply to the summarization
+
+567
+00:56:28,940 --> 00:56:33,179
+but it's the same thing you have to solve the summarization first before you can address this
+
+568
+00:56:33,179 --> 00:56:38,860
+problem but it's a very interesting idea to pursue you would do the summarization and then do this
+
+569
+00:56:38,860 --> 00:56:46,300
+one there and just one second yeah just want to remind people on webbacks yeah if you do
+
+570
+00:56:46,300 --> 00:56:52,700
+have any questions yeah please click the button raise hand yeah i can unmute you so any other
+
+571
+00:56:52,700 --> 00:57:02,460
+questions so do you have numerical results on how better reconciliation is between backtest and
+
+572
+00:57:03,019 --> 00:57:09,420
+realized trading strategy performance and how do you mean the realization between backtest
+
+573
+00:57:09,420 --> 00:57:15,099
+just to make sure i understand it correctly one of the thing is that you could backtest better
+
+574
+00:57:15,099 --> 00:57:23,019
+passive strategies and i was asking if you you have like numerical results on how much it betters
+
+575
+00:57:23,019 --> 00:57:30,940
+reconciliation so as i mentioned we are currently looking into the price impact modeling and that
+
+576
+00:57:30,940 --> 00:57:39,900
+is something which obviously helps you to reconcile between a simulated execution strategy
+
+577
+00:57:39,900 --> 00:57:47,019
+and which and a live trading one because the live trading one has the one the indirect impact in
+
+578
+00:57:47,019 --> 00:57:52,940
+just making sure there's a direct impact which is i trade and i remove a level this type of impact
+
+579
+00:57:52,940 --> 00:57:58,940
+is correctly captured by the simulator there's a form of adverse selection happening if you trade
+
+580
+00:57:58,940 --> 00:58:04,539
+passively it can be that i place an order but i'm so bad in placing order that i only get to
+
+581
+00:58:04,539 --> 00:58:10,220
+fill if everyone else canceled i'm the last man standing basically then i'm badly adverse selected
+
+582
+00:58:10,220 --> 00:58:17,980
+and this adverse selection is also correctly captured by a standard limit order book simulator
+
+583
+00:58:17,980 --> 00:58:25,659
+so the standard simulator does correctly capture direct impact and adverse selection and spread
+
+584
+00:58:25,659 --> 00:58:32,219
+savings all these costs are direct are included the only one which is which is can't capture the
+
+585
+00:58:32,219 --> 00:58:37,739
+indirect impact and this is really where this model are in am i doing something funny some
+
+586
+00:58:37,739 --> 00:58:42,940
+flickering and people react to it this is where you hope where the generative ai model can give
+
+587
+00:58:42,940 --> 00:58:48,460
+you this extra edge but this is exactly what i said we are testing right now how can we actually
+
+588
+00:58:48,460 --> 00:58:54,940
+see how much better can we reproduce impact relationships there because obviously if i
+
+589
+00:58:54,940 --> 00:59:01,260
+were to have a simulated trajectory no matter what i include i wouldn't see any impact of this
+
+590
+00:59:01,260 --> 00:59:08,059
+in aggregate but obviously here i hope that if i consistently keep on buying over a course of many
+
+591
+00:59:08,059 --> 00:59:12,700
+ticks over course of an hour that there will be some drift which is roughly like proportion to
+
+592
+00:59:12,700 --> 00:59:19,099
+the square root of that quantity and and it's whether we can see this empirical price impact
+
+593
+00:59:19,099 --> 00:59:24,860
+loss which gives us exactly this confidence that yes we can reproduce the indirect impact so now
+
+594
+00:59:24,860 --> 00:59:31,099
+actually we can we can do this form of reconciliation then we could obviously
+
+595
+00:59:31,099 --> 00:59:38,860
+compare that but the problem is the comparison has this counterfactual one again i don't have
+
+596
+00:59:38,860 --> 00:59:45,579
+i mean the the other version it didn't happen in reality so i don't really have anything to uh
+
+597
+00:59:45,579 --> 00:59:51,660
+to compare to i could take some orders out maybe and then i can maybe look at the execution
+
+598
+00:59:51,659 --> 00:59:56,699
+algorithm i can remove my orders but then the impact is in there so it's very difficult
+
+599
+00:59:57,420 --> 01:00:02,299
+thing to do but i think the best thing we can do is see whether we will produce impact basically
+
+600
+01:00:08,379 --> 01:00:14,779
+um specifically for things like the price prediction um is there some way to quantify
+
+601
+01:00:14,779 --> 01:00:18,940
+how much benefit you get from having the level three data versus just using the state of the
+
+602
+01:00:18,940 --> 01:00:23,260
+order book because i can see into your model you put the state of the order book and you put the
+
+603
+01:00:23,260 --> 01:00:28,139
+messages like if you just gave it that order book information you could probably make some
+
+604
+01:00:28,139 --> 01:00:32,780
+prediction do you did you have some way of getting a handle on how much benefit you're getting from
+
+605
+01:00:32,780 --> 01:00:38,700
+that yeah i imagine this prediction there's a pure prediction work it's an older paper here
+
+606
+01:00:40,220 --> 01:00:41,340
+and we did compare it
+
+607
+01:00:41,579 --> 01:00:49,820
+yeah in this paper here we looked at adding the message data and we got some benefits that weren't
+
+608
+01:00:49,820 --> 01:00:56,300
+huge like some 20 better or so in terms of performance give or take if i recall correct it
+
+609
+01:00:56,300 --> 01:01:03,260
+wasn't a huge increment there but there was some additional information so there was something
+
+610
+01:01:03,260 --> 01:01:09,980
+orthogonal which wasn't captured there as i mentioned before um i think it's a good thing
+
+611
+01:01:10,219 --> 01:01:16,699
+um as a practitioner you might get some way of obviously um
+
+612
+01:01:18,300 --> 01:01:23,980
+we haven't the the limit order book obviously does not include those um
+
+613
+01:01:25,099 --> 01:01:30,219
+right so obviously i mean if you weren't a practitioner you wanted to do for comparison
+
+614
+01:01:30,219 --> 01:01:35,820
+you might probably take the limit order book first you add the traits and use that as your
+
+615
+01:01:35,900 --> 01:01:42,140
+benchmarks there in the academic paper we only compared about limit order books and then it is
+
+616
+01:01:42,140 --> 01:01:49,100
+clear that the trade information is relevant it is unclear how much it picked up beyond the trade
+
+617
+01:01:49,100 --> 01:01:54,860
+information from deeper studies from the limit order book but i mentioned we do have this work
+
+618
+01:01:54,860 --> 01:02:00,140
+which is coming out soon on this clustering and there we can see that we actually can identify
+
+619
+01:02:00,139 --> 01:02:07,259
+some relevant clusters where we can see different predictability on imbalance on the different
+
+620
+01:02:07,259 --> 01:02:11,659
+clusters there which is very exciting because obviously we do not know the identity but if
+
+621
+01:02:11,659 --> 01:02:19,099
+you have some idea of identifying roughly speaking statistically which order belongs to which group
+
+622
+01:02:19,099 --> 01:02:25,659
+of market participants then we might anticipate that maybe a fast market maker has a alpha which
+
+623
+01:02:25,659 --> 01:02:31,339
+is over a shorter horizon than a institutional order which is worked over hours it might have a
+
+624
+01:02:31,339 --> 01:02:37,339
+very slower predictability and that's something this is something which is information you
+
+625
+01:02:37,339 --> 01:02:42,059
+wouldn't be able to capture without this three data and we do see some additional information
+
+626
+01:02:42,059 --> 01:02:47,980
+content it's not a priori forecasting model of the types we mentioned but it's quite
+
+627
+01:02:48,619 --> 01:02:52,219
+interesting there it also relates there was some recent work by the institute
+
+628
+01:02:53,100 --> 01:02:57,260
+together with the dutch regulator where they actually looked into different where they had
+
+629
+01:02:57,260 --> 01:03:05,180
+the election identity of the participants and i wasn't involved in in that work but they saw
+
+630
+01:03:05,900 --> 01:03:11,900
+interesting patterns there and what we try to say is actually on enormous market data could
+
+631
+01:03:11,900 --> 01:03:17,100
+be maybe use some unsupervised learning to find at least groups we can't tell for certain but maybe
+
+632
+01:03:17,099 --> 01:03:23,420
+there's a big likelihood that if a smallish order was cancelled just fractions after the price
+
+633
+01:03:23,420 --> 01:03:28,860
+changed that was maybe a more sophisticated market maker who puts this there rather than someone else
+
+634
+01:03:28,860 --> 01:03:33,659
+and can that tell us something about the imbalance there so this is something we we use information
+
+635
+01:03:33,659 --> 01:03:38,059
+content of l3 and we see some interesting results there even though it's not exactly
+
+636
+01:03:38,619 --> 01:03:42,539
+this deep learning model it's just very simple question thanks
+
+637
+01:03:42,699 --> 01:03:52,380
+so question in in the training data have you had any periods when the order book was one-sided
+
+638
+01:03:52,380 --> 01:03:59,019
+because at that point you would not have a well-defined mid and did the replay reproduce
+
+639
+01:03:59,019 --> 01:04:09,579
+any such one-sided moments i mean we didn't have i mean there was some cleaning going on and the
+
+640
+01:04:09,579 --> 01:04:14,299
+didn't have i mean there was some cleaning going on in the market data so we always ensured that
+
+641
+01:04:14,299 --> 01:04:21,420
+we had like well-defined books obviously nothing i mean you're usually doing liquid hours in this
+
+642
+01:04:21,420 --> 01:04:27,259
+market there's always a two-sided book present and there aren't any cross markets i mean you could
+
+643
+01:04:27,259 --> 01:04:32,699
+see those if you include won't include some auction period or stuff but we make sure that we
+
+644
+01:04:32,699 --> 01:04:39,179
+stay away from any auctions we even usually stay away half hour from the opening just because there's
+
+645
+01:04:39,340 --> 01:04:44,940
+kind of liquidity formation in the earlier parts of the market so we look more of the individual
+
+646
+01:04:45,580 --> 01:04:55,260
+interval there so generally speaking and i don't think we have seen any situations where there's a
+
+647
+01:04:55,260 --> 01:05:03,180
+one-sided order book but we haven't explicitly checked there the only reason we would see it
+
+648
+01:05:03,180 --> 01:05:08,060
+would be in those we didn't actually test for it but you would obviously see in this
+
+649
+01:05:09,580 --> 01:05:10,380
+in this um
+
+650
+01:05:14,300 --> 01:05:20,220
+this histograms here if there was a one-sided book in the ask obviously the mid price would
+
+651
+01:05:20,220 --> 01:05:25,980
+be infinite and use will completely mess up your distributions there i mean so we didn't explicitly
+
+652
+01:05:25,980 --> 01:05:30,380
+check for it but if it would have happened you would see in those graphs there
+
+653
+01:05:30,380 --> 01:05:31,579
+yeah
+
+654
+01:05:34,860 --> 01:05:40,700
+it only occurs very infrequently if it happens on the ask it would be infinite and then you would
+
+655
+01:05:40,700 --> 01:05:45,900
+see it mess up your entire mean if it would be maybe on the bid and it would be a large sample
+
+656
+01:05:45,900 --> 01:05:51,340
+you might not be able to see it but yes so why we didn't explicitly check for it you would pick it
+
+657
+01:05:51,340 --> 01:05:57,740
+up in those plots yes so i can say that it didn't happen and there are some questions from the way
+
+658
+01:05:57,740 --> 01:06:03,100
+back yeah i will unmute maybe one by one yeah so there is a question from irina yeah please go
+
+659
+01:06:03,100 --> 01:06:10,940
+ahead hi thank you for your talk i have a question but how did you define a tick is it a quote or
+
+660
+01:06:10,940 --> 01:06:19,020
+trade tick or both and what would be the expected time for a head for 50 to 106 thank you for this
+
+661
+01:06:19,099 --> 01:06:20,860
+particular stocks like google
+
+662
+01:06:23,579 --> 01:06:31,739
+yes so um yes so tick here i mean sometimes we use different definitions of tics so in this first
+
+663
+01:06:31,739 --> 01:06:37,900
+part when we speak about limit order books or sorry when we speak about limit order books or l2
+
+664
+01:06:37,900 --> 01:06:45,500
+data we mainly mean by a tick if there was any quote update within the levels we are interested
+
+665
+01:06:45,500 --> 01:06:51,099
+in so if you look at a 10 level lob it would be any message within this 10 levels if there was
+
+666
+01:06:51,099 --> 01:06:57,260
+a message posted if someone wanted to buy google at one cent then this wouldn't be showing up in
+
+667
+01:06:57,260 --> 01:07:07,420
+our ticks here whereas the mbo data here the messages those are every message happening there
+
+668
+01:07:07,420 --> 01:07:15,420
+so so any any place or cancel of any type would be included even if it goes outside of 10 levels and
+
+669
+01:07:15,900 --> 01:07:25,340
+as i mentioned we do we do only look at messages when they are outside of 100 levels we ignore them
+
+670
+01:07:25,340 --> 01:07:32,539
+basically so if it's 100 ticks off the mid price we do ignore it but in principle is every message
+
+671
+01:07:32,539 --> 01:07:38,940
+except when it's 100 ticks off the mid price when we just filter it out basically so this is the
+
+672
+01:07:38,940 --> 01:07:48,300
+information now the the time varies greatly from talk is from stock to from instrument to instrument
+
+673
+01:07:48,300 --> 01:07:56,700
+it's roughly speaking let me just check that i get those numbers right i know for lse i know by
+
+674
+01:07:56,700 --> 01:08:05,820
+heart it's roughly like um it's a smallish number or that ten of them uh yeah here this i think it's
+
+675
+01:08:06,220 --> 01:08:12,140
+um all that for google is like all that 10 milliseconds if i'm not mistaken the average
+
+676
+01:08:12,140 --> 01:08:17,659
+tick time i would have to look it up again but yes it's just the time between every tick i think
+
+677
+01:08:17,659 --> 01:08:24,460
+it's 10 milliseconds on average there obviously it varies between like between more active period
+
+678
+01:08:25,020 --> 01:08:28,300
+and less active periods but on average it's roughly around this
+
+679
+01:08:28,300 --> 01:08:36,140
+okay thank you yeah we do we don't have the summary of that uh oh no we have it
+
+680
+01:08:36,140 --> 01:08:38,779
+we have to oh we do have it here
+
+681
+01:08:44,779 --> 01:08:48,619
+yeah yes yeah here you can see here
+
+682
+01:08:49,420 --> 01:08:50,300
+minus
+
+683
+01:08:52,300 --> 01:08:59,099
+yes yeah that's what we like yeah thank you it's good also to compare this number
+
+684
+01:08:59,099 --> 01:09:06,859
+with 10 milliseconds the latency of the system as well right oh yes exactly obviously i don't
+
+685
+01:09:06,859 --> 01:09:14,779
+mistake those numbers by latency it doesn't matter why i mean even though this might be like largest
+
+686
+01:09:14,779 --> 01:09:21,819
+numbers doesn't mean that you have to be fast maybe to to execute yes yeah but yeah this is
+
+687
+01:09:22,619 --> 01:09:30,779
+much slower than the typical latency okay and there is a question from shichao fan yeah please
+
+688
+01:09:30,779 --> 01:09:38,219
+go ahead uh hi uh just wondering do you in your order book uh training data do you consider orders
+
+689
+01:09:38,220 --> 01:09:43,740
+of different commune force like immediate or cancel instead of a day order
+
+690
+01:09:47,260 --> 01:09:55,260
+yes so we do have different uh different types of orders are are correctly captured sometimes you
+
+691
+01:09:55,260 --> 01:10:02,300
+can encode them in some extent and there's obviously for some markets like this nastax
+
+692
+01:10:02,300 --> 01:10:07,100
+there might be additional complications due to hidden liquidity where there might be trace and
+
+693
+01:10:07,100 --> 01:10:14,140
+you might not see the actual liquidity there if there's no hidden liquidity you can actually
+
+694
+01:10:14,140 --> 01:10:19,500
+replicate an ioc also by just putting in a placement and a cancellation immediately afterwards
+
+695
+01:10:19,500 --> 01:10:25,660
+so it will in a replay will give you the same results as they are so we work before in this
+
+696
+01:10:25,660 --> 01:10:34,620
+other paper i mentioned we this paper here we we use lse data and we effectively only work with
+
+697
+01:10:34,699 --> 01:10:39,180
+placements and cancels and we will replicate the ioc by just the placement with a cancellation
+
+698
+01:10:40,140 --> 01:10:46,539
+immediately like followed so it would be taken off immediately whereas in the nastax data we
+
+699
+01:10:46,539 --> 01:10:54,460
+have proper message streams of the various order types okay thanks there's a question from callos
+
+700
+01:10:54,460 --> 01:11:03,739
+vyga yeah please go ahead oh uh well uh actually two questions the first one would be i hope you
+
+701
+01:11:03,739 --> 01:11:10,779
+can hear me like what you'd see are the limitations of of this kind of modeling like you could see
+
+702
+01:11:10,779 --> 01:11:17,099
+cases where the same thing is traded across different venues so you'd have multiple order
+
+703
+01:11:17,099 --> 01:11:22,859
+books to keep track of you can see cases where two stocks are correlated let's say
+
+704
+01:11:23,659 --> 01:11:31,099
+on the same sector and even for example looking ahead into other markets like stocks and futures
+
+705
+01:11:31,100 --> 01:11:37,660
+and corresponding options and so on so what would you see as the limitations of this and and then
+
+706
+01:11:37,660 --> 01:11:42,860
+the other one was if you're running this in kind of a live environment how much history would you
+
+707
+01:11:42,860 --> 01:11:49,579
+be able to be able to keep in the model because you're you're not retraining so how many events
+
+708
+01:11:49,579 --> 01:11:56,700
+would you keep would you be able to to to kind of feed it as the context to predict the next move
+
+709
+01:11:56,699 --> 01:12:03,099
+thank you yes so firstly obviously yes yeah there are different sources of liquidity especially in
+
+710
+01:12:03,099 --> 01:12:09,260
+activity markets it can be quite fragmented this is all univariate models and basically
+
+711
+01:12:09,260 --> 01:12:16,139
+on the primary being at lse or being at nastak obviously there are other sources of liquidity
+
+712
+01:12:16,139 --> 01:12:22,619
+mtf stock puts and we just can't include this information our main hope is that
+
+713
+01:12:23,180 --> 01:12:29,739
+the liquidity on the primary gives us a good representation of the overall liquidity but
+
+714
+01:12:29,739 --> 01:12:38,619
+that's obviously a limitation which is um which we just have to take into account you could obviously
+
+715
+01:12:38,619 --> 01:12:46,779
+try to look into a consolidated book um for example but um yeah we think that this type of
+
+716
+01:12:47,340 --> 01:12:54,619
+model on the messages you're better off looking at the individual exchange rather than looking at a
+
+717
+01:12:54,619 --> 01:13:00,219
+consolidated book but obviously there's information coming in from other sources and it's hard to
+
+718
+01:13:00,219 --> 01:13:06,380
+capture it there's some cases and obviously the same is true for correlated instruments yes there
+
+719
+01:13:06,380 --> 01:13:11,579
+could be correlated instruments and maybe a trade in one might be influencing it i mean we i could
+
+720
+01:13:11,659 --> 01:13:17,500
+just say that you might see the maybe i don't see the other book but the market maker who sees it
+
+721
+01:13:17,500 --> 01:13:22,140
+might place an order and i just pick up this other order then so there's some way in which this
+
+722
+01:13:22,140 --> 01:13:29,100
+information maybe ripples through to me that i know from practice there are some people some
+
+723
+01:13:29,100 --> 01:13:35,500
+cases where people explicitly look at this for example if you have like options then if you have
+
+724
+01:13:35,500 --> 01:13:40,380
+a because you have put call parity you can immediately unify a put in the call limit all
+
+725
+01:13:40,380 --> 01:13:45,900
+the book into one because there's a direct matching that's obviously like idea correlation
+
+726
+01:13:45,900 --> 01:13:50,300
+you have here because there's a mathematical relationship so you they have situations when
+
+727
+01:13:50,300 --> 01:13:55,420
+people build together books to look at the joint liquidity but you wouldn't do that for
+
+728
+01:13:56,220 --> 01:14:02,300
+like weekly correlated correlated instruments which are not like identically matchable like
+
+729
+01:14:02,300 --> 01:14:08,140
+amazon and google you wouldn't try to join limit order books best people do is look at consolidated
+
+730
+01:14:08,140 --> 01:14:13,980
+books but we don't use we just use the primary here which hopefully you might argue is the kind
+
+731
+01:14:13,980 --> 01:14:21,740
+of like source of liquidity and price formation and thus all the model works well there but yes
+
+732
+01:14:22,539 --> 01:14:28,619
+there's potential scopes of extending it and looking into consolidated books or other sources
+
+733
+01:14:28,619 --> 01:14:33,740
+and people do that in practice but yeah i haven't seen any good deep learning models which do
+
+734
+01:14:33,739 --> 01:14:39,340
+limit all the books in the cross section there people do cross-sectional modeling this information
+
+735
+01:14:39,340 --> 01:14:43,579
+would rip it through a bit slower so you might have a different type of model for this effect
+
+736
+01:14:43,579 --> 01:14:48,059
+than you have for the actual limit all the books most of the academic limit all the book literature
+
+737
+01:14:48,059 --> 01:14:56,539
+is all univariate then the second one was on the history so you're running on a live environment
+
+738
+01:14:56,539 --> 01:15:02,380
+how much would would be available in the model let's say the last five years
+
+739
+01:15:02,619 --> 01:15:08,859
+five minutes of messages would be would be as much as context as the model can take
+
+740
+01:15:09,579 --> 01:15:15,500
+like the number of tokens you can keep in your in your sessions right yeah i mean just to
+
+741
+01:15:15,500 --> 01:15:20,380
+clarify this is all academic work from the university of oxford so it's not one in
+
+742
+01:15:20,380 --> 01:15:25,900
+live environment but obviously we want to make sure that the academic work is of relevance and
+
+743
+01:15:25,900 --> 01:15:31,500
+maybe useful so i mean this one's here look 500 ticks into the future as i mentioned so
+
+744
+01:15:32,380 --> 01:15:40,060
+100 ticks can be anything from uh 10 second to 30 second or roughly speaking depending on
+
+745
+01:15:40,060 --> 01:15:46,140
+this depends on the instrument or so so you're looking like five times that so you're looking at
+
+746
+01:15:46,859 --> 01:15:51,500
+all the minute single minute maybe five minutes again depending on the liquidity that's what you
+
+747
+01:15:51,500 --> 01:15:58,699
+have as a look back and you try to use that to make forecasts that's generally good look back
+
+748
+01:15:58,699 --> 01:16:05,260
+for this type of information you are looking for anything beyond that might be a signal of a
+
+749
+01:16:05,260 --> 01:16:10,859
+different nature you might argue that maybe the audiobook effects decay away and then it's maybe
+
+750
+01:16:10,859 --> 01:16:16,539
+more the cross-sectional information which is maybe relevant at this frequencies you might argue the
+
+751
+01:16:17,099 --> 01:16:22,619
+the the any information from the univariate limit audiobook is the one which is
+
+752
+01:16:23,260 --> 01:16:28,779
+up the way the fastest followed up by some cross-sectional effects which relate different
+
+753
+01:16:28,779 --> 01:16:34,699
+instruments followed up by some other effects so so this type of information i think is a reasonable
+
+754
+01:16:35,340 --> 01:16:41,340
+look back to look at i wouldn't expect those types of signal to have to be used for forecast
+
+755
+01:16:41,340 --> 01:16:46,939
+stability beyond like three to five minutes you would look at other type of features and other
+
+756
+01:16:46,940 --> 01:16:52,780
+type of data and you will definitely look into the cross-section at this longer time period so
+
+757
+01:16:52,780 --> 01:16:58,380
+it it is i think it is relevant for practice because for the type of data you look at
+
+758
+01:16:58,380 --> 01:17:04,060
+you don't expect it to have forecastability much beyond this so it's a reasonable input really
+
+759
+01:17:06,300 --> 01:17:13,340
+yeah i was thinking more like let's say a dialogue the model was loaded with a number of
+
+760
+01:17:13,340 --> 01:17:20,940
+messages it replies with the prediction now you kind of reply back with the real realization
+
+761
+01:17:20,940 --> 01:17:27,100
+then another prediction and so on and the model accumulates this state and and llms typically
+
+762
+01:17:27,100 --> 01:17:34,860
+have a capacity on how long the dialogue can be and and that's that was what i was after like how
+
+763
+01:17:34,860 --> 01:17:40,940
+long could this capacity be in terms of ticks or messages or or minutes but thank you very much
+
+764
+01:17:40,940 --> 01:17:45,020
+yes yeah but i was just saying i mean maybe now it's a little bit better just
+
+765
+01:17:45,020 --> 01:17:49,740
+a quick comment first of all there are different ways of training those models there things like
+
+766
+01:17:49,740 --> 01:17:55,420
+teacher training and things alike for example am i training it if i predict it's the next message
+
+767
+01:17:55,420 --> 01:18:00,780
+and i want to roll it forward i can then actually replace it with the actual message so i'm only
+
+768
+01:18:00,780 --> 01:18:05,980
+ever in training going one step into the future in training it's not rolling 100 steps it's only
+
+769
+01:18:05,980 --> 01:18:11,420
+rolling one step at a time into the future and then i predict the message that okay i was that
+
+770
+01:18:11,420 --> 01:18:17,980
+and now i just actually when i then roll forward i use the actual correct message then if i train
+
+771
+01:18:17,980 --> 01:18:24,140
+it on historical data basically so this is how this is called teacher training this is our teacher
+
+772
+01:18:24,140 --> 01:18:32,060
+forcing which is how it is done uh basically and then in then you might argue obviously how long
+
+773
+01:18:32,060 --> 01:18:36,620
+can you run it forward we run it forward 400 ticks and we see some good correlation what
+
+774
+01:18:36,620 --> 01:18:43,660
+happens if you want it forward for an entire day it's uh it's questionable how well it works
+
+775
+01:18:43,660 --> 01:18:48,539
+obviously it doesn't mean that the model has to have a look back of an entire day it only has a
+
+776
+01:18:48,539 --> 01:18:54,539
+look back of 500 it just keeps on rolling this forward but obviously if you keep on running it
+
+777
+01:18:54,539 --> 01:19:01,980
+indefinitely it eventually will diverge from from from the historical data and how realistic it is
+
+778
+01:19:01,980 --> 01:19:07,580
+that we have some ongoing work which i try to mention where this current model the loss function
+
+779
+01:19:07,580 --> 01:19:15,100
+only looks at one step ahead and you can then have another model which then evaluates all the
+
+780
+01:19:15,100 --> 01:19:22,060
+sequences of messages say 100 500 ticks into the future and compares them to actual ones and
+
+781
+01:19:22,060 --> 01:19:27,820
+evaluates the entire sequence at a time and you can then this is another form of loss function
+
+782
+01:19:27,819 --> 01:19:33,979
+there so this is something we are doing right now it's quite active critique and this is ongoing
+
+783
+01:19:33,979 --> 01:19:38,939
+works which will hopefully help us to get better long-term sequences which is what we eventually
+
+784
+01:19:38,939 --> 01:19:44,619
+want if you say you want to use that for for simulation of say a whole day of trading or
+
+785
+01:19:44,619 --> 01:19:50,139
+something like that yeah that's something ongoing it's a good question indeed a question in run
+
+786
+01:19:52,059 --> 01:19:57,179
+hi thanks Evan um i don't know if this question is applicable now that you said that you haven't
+
+787
+01:19:57,180 --> 01:20:03,740
+tried this in live trading but have you tested the approach in a situation in which the 500
+
+788
+01:20:03,740 --> 01:20:10,060
+messages that you feed the model with include the time in which some relevant significant
+
+789
+01:20:10,060 --> 01:20:16,140
+announcement happened like you know quarterly results or monetary policy announcement and if
+
+790
+01:20:16,140 --> 01:20:22,140
+so what did you observe we haven't specifically dialed down onto those things one of these ongoing
+
+791
+01:20:22,140 --> 01:20:27,980
+ones is where we want to check because obviously this model seems to be doing an okay job in
+
+792
+01:20:28,780 --> 01:20:34,300
+normal situations but at some point obviously you might run out of the distributions of all
+
+793
+01:20:34,300 --> 01:20:41,420
+of the comfort zone in simple words where where the model is used to so that's something we are
+
+794
+01:20:41,420 --> 01:20:45,980
+looking at right now for example could you reproduce the typical shape of the flash crash
+
+795
+01:20:45,980 --> 01:20:51,900
+if you just inserted a very very big order we haven't tested those things it might not be that
+
+796
+01:20:51,900 --> 01:20:59,980
+the model if it has never seen that it just is not performing so well in those tales yeah but
+
+797
+01:20:59,980 --> 01:21:04,860
+it's obviously something we can test and then we can look at other things like specifically around
+
+798
+01:21:05,420 --> 01:21:11,260
+announcements or other things we haven't done that in this specific one in some other works like you
+
+799
+01:21:11,260 --> 01:21:16,540
+know in other contexts we did look at say some of our momentum works with attention we looked at
+
+800
+01:21:16,539 --> 01:21:22,699
+what happens during over what happens around brexit world etc etc we haven't done it for
+
+801
+01:21:22,699 --> 01:21:27,019
+this specific project but that's actually something once we want to gain more and more
+
+802
+01:21:27,019 --> 01:21:32,220
+comfort into the model which we will be doing this right to understand where are its limitations
+
+803
+01:21:32,220 --> 01:21:40,220
+when do we push it outside this comfort zone thank you any further questions
+
+804
+01:21:40,220 --> 01:21:51,900
+um sorry did you see the simulator learning about uh heat-laden sorry lit hidden liquidity
+
+805
+01:21:51,900 --> 01:22:01,100
+so like inter-sprite liquidity and like icebergs reloading but it uses the available messages and
+
+806
+01:22:01,100 --> 01:22:07,900
+the messages obviously have trades where if it gets the limit order book as comparison and it's
+
+807
+01:22:07,900 --> 01:22:13,420
+maybe it is one of the reasons why you might argue that maybe it is also useful to include
+
+808
+01:22:14,620 --> 01:22:20,060
+is all the books there because obviously it's easier for the model to figure out when liquidity
+
+809
+01:22:20,060 --> 01:22:25,580
+is hidden if it sees the limit all the book and it sees the trade happening and the passive side
+
+810
+01:22:25,580 --> 01:22:32,620
+wasn't rare then it must be hidden and it helps the model obviously to see that so yes it does
+
+811
+01:22:32,619 --> 01:22:39,659
+see all the trades and it has a way of figuring it out actually so and uh yeah
+
+812
+01:22:42,779 --> 01:22:46,059
+that's the right way but yeah we can only model the
+
+813
+01:22:46,779 --> 01:22:51,500
+i mean we can only model the sequence of messages we can see actually that's a problem
+
+814
+01:22:54,140 --> 01:23:02,059
+yeah yeah and regarding the tokenization i mean i think that one of the main challenges of applying
+
+815
+01:23:02,060 --> 01:23:08,300
+machine learning models in finance is the as opposed to like images or text the dimensions
+
+816
+01:23:08,300 --> 01:23:13,980
+are not compatible because for example in an image like like let's say the horizontal
+
+817
+01:23:13,980 --> 01:23:20,780
+vertical dimensions are like morally like the same right but the finance for example if we
+
+818
+01:23:20,780 --> 01:23:25,340
+have in one uh we have the price and the other one we have the time difference
+
+819
+01:23:26,300 --> 01:23:32,779
+um yeah how do we get around that the fact that like features are very different in like
+
+820
+01:23:32,779 --> 01:23:38,300
+different dimensions but the architectures they told the dimensions the same like for example if
+
+821
+01:23:38,300 --> 01:23:45,020
+you apply a convolutional layer with a kernel like i mean like this filter like the kernel is like
+
+822
+01:23:45,020 --> 01:23:49,980
+doing the same in all the dimensions basically of course with different parameters but so how do you
+
+823
+01:23:49,980 --> 01:23:55,500
+get around these yes i mean there are different things obviously at the beginning when i spoke
+
+824
+01:23:55,500 --> 01:24:00,380
+about deep log we have some convolutional filters and there we have actual numerical information and
+
+825
+01:24:00,380 --> 01:24:06,780
+you can make sense of those things here we do this tokenization is mainly to quantify
+
+826
+01:24:09,180 --> 01:24:16,140
+quantize in a sense vocabulary because then we can use it like as it was a classification
+
+827
+01:24:16,140 --> 01:24:20,700
+task we can have a cross entropy we get soft probability and we can sample we couldn't do
+
+828
+01:24:20,700 --> 01:24:26,060
+that if it was a continuous variable so now we have like a unique id for every possible
+
+829
+01:24:26,060 --> 01:24:31,500
+token so every possible message is just a community unique combination of tokens and
+
+830
+01:24:31,500 --> 01:24:37,340
+it's a nice countable set it's a big length set and we can easily deal with it that's why we do
+
+831
+01:24:37,340 --> 01:24:41,820
+the tokenization it's it's mainly the main reason is so we can use cross entropy loss that's the
+
+832
+01:24:41,819 --> 01:24:48,539
+way we do that yeah everything else you can deal with some if it was just a normalization or so we
+
+833
+01:24:48,539 --> 01:24:54,460
+can find a way of normalizing it also if you obviously if you don't want to share you don't
+
+834
+01:24:54,460 --> 01:25:01,819
+have to share time or price filters there you know you wouldn't be sharing the filter over variables
+
+835
+01:25:01,819 --> 01:25:07,179
+of a different type it wouldn't make sense basically so but you could still do a little
+
+836
+01:25:07,180 --> 01:25:13,100
+normalization so i would say if you're just after normalization and combining features you don't
+
+837
+01:25:13,100 --> 01:25:19,260
+really need this tokenization the tokenization is the reason why we have it here is only to have
+
+838
+01:25:20,060 --> 01:25:26,700
+a finite number of big strengths of possible tokens over which we can use the cross entropy
+
+839
+01:25:26,700 --> 01:25:31,180
+loss that's why we ended up with this yeah everything else you can really do with some
+
+840
+01:25:31,180 --> 01:25:36,780
+smart normalization which is what we do here in this limit order book when we look at these images
+
+841
+01:25:36,779 --> 01:25:45,340
+before and those ones this is all just nicely we scaled and for example we use convolutional
+
+842
+01:25:45,340 --> 01:25:51,019
+filters but the convolutional filter stretches the entire image which is once like this you wouldn't
+
+843
+01:25:51,019 --> 01:25:56,779
+be able to have a convolutional filter like this but this applies to different sites and it is the same
+
+844
+01:25:56,779 --> 01:26:08,699
+um in any case but you don't need organization for that you can use it here please
+
+845
+01:26:11,179 --> 01:26:11,679
+thank you
+
+846
+01:26:15,259 --> 01:26:18,779
+all right um on slide 20 you talked about the way you encoded difference
+
+847
+01:26:18,779 --> 01:26:20,779
+um
+
+848
+01:26:26,539 --> 01:26:33,019
+good for your eyesight after i clicked through it what's about cancellations
+
+849
+01:26:35,259 --> 01:26:45,420
+and the way that you encoded them yeah so for the buys here um or for the um the place
+
+850
+01:26:45,420 --> 01:26:48,779
+instructions you'll know that those are always on the back of the book
+
+851
+01:26:49,420 --> 01:26:54,220
+um with the cancellations this could happen anywhere through the queue so is it possible
+
+852
+01:26:54,220 --> 01:27:00,060
+we're losing some information in that example because the encoding doesn't tell you where in
+
+853
+01:27:00,060 --> 01:27:06,699
+the queue that cancellation was perhaps the train is well not but obviously the sequence of messages
+
+854
+01:27:07,579 --> 01:27:14,220
+in passes information inside i mean because the earlier message has the quantity of the
+
+855
+01:27:14,220 --> 01:27:19,260
+order we play it this information is there it just can't do it see it in the snapshot
+
+856
+01:27:21,340 --> 01:27:27,180
+okay it is all the i mean all the information is in here already
+
+857
+01:27:28,300 --> 01:27:34,539
+just this is the kind of incremental pieces of information but in aggregate you would know the
+
+858
+01:27:34,539 --> 01:27:42,699
+information which we played the information is there it's not lost yeah so even in this
+
+859
+01:27:42,939 --> 01:27:47,659
+view yeah what we do is add a bit more information to this one because this is just
+
+860
+01:27:49,579 --> 01:27:55,340
+important to make any friend out of this to be fair this only makes sense
+
+861
+01:27:58,059 --> 01:28:01,500
+this also only makes sense if you have the history you can put a type of speed
+
+862
+01:28:02,699 --> 01:28:10,619
+place with the relevant id here to be able to know where information content wise the mbo data has
+
+863
+01:28:10,619 --> 01:28:15,579
+everything after all that's the data you can send from the exchange is all you're ever going to see
+
+864
+01:28:16,300 --> 01:28:21,180
+yes and that's all the information is in there i can't get any richer than that the question is
+
+865
+01:28:21,180 --> 01:28:27,340
+only what kind of states who i built out of it and obviously how do i have something which
+
+866
+01:28:27,340 --> 01:28:33,340
+potentially the information is there but i might have to go further enough into the history
+
+867
+01:28:33,340 --> 01:28:37,260
+me we do have some tricks also
+
+868
+01:28:39,819 --> 01:28:42,539
+there are some tricks here in this thing so
+
+869
+01:28:44,860 --> 01:28:50,140
+this thing gets to start with an order book and we do know all the ideas
+
+870
+01:28:51,980 --> 01:28:57,739
+and it comes up with some cancellation that it will look whether it was there before and
+
+871
+01:28:57,819 --> 01:29:01,019
+you can also go it has to start with all the book at the beginning
+
+872
+01:29:07,019 --> 01:29:11,899
+it's just there but it's mainly about the history so you're not losing any information outwards
+
+873
+01:29:12,619 --> 01:29:18,619
+leah it's just it's easier if you could see this information spontaneously without having to look
+
+874
+01:29:19,260 --> 01:29:26,460
+something up the queue position is implicitly encoded but it's not explicitly seen in the
+
+875
+01:29:27,340 --> 01:29:34,779
+message but the model has enough information to learn it this is the main thing you could try to
+
+876
+01:29:34,779 --> 01:29:39,340
+ask it explicitly but then the question becomes what else do you want to add is it just the
+
+877
+01:29:39,340 --> 01:29:43,899
+position in the queue which is relevant if it may be relevant or maybe all that there are you can
+
+878
+01:29:43,899 --> 01:29:49,579
+think about all kinds of variables you could add this is again handcrafted feature engineering so
+
+879
+01:29:49,579 --> 01:29:53,180
+we just try to give it some more messages and hopefully it learns those features
+
+880
+01:29:53,740 --> 01:29:59,100
+by itself the only question is do we remove some relevant information so it's not able to learn it
+
+881
+01:29:59,100 --> 01:30:03,980
+because it doesn't have sufficient information but in principle it does have sufficient information
+
+882
+01:30:03,980 --> 01:30:13,180
+to reproduce the queue position if you wanted to learn that we're actually running over time so
+
+883
+01:30:13,180 --> 01:30:18,940
+i was i didn't expect yeah we have running over 30 minutes yeah so i would suggest we have some
+
+884
+01:30:18,940 --> 01:30:25,020
+reception here yeah if you want to discuss more maybe you can ask professor zoran during the
+
+885
+01:30:25,020 --> 01:30:37,980
+reception time so now we officially close the seminar and let's thank professor zoran again
+
+886
+01:30:48,940 --> 01:30:49,020
+you
+
+887
+01:31:18,940 --> 01:31:19,180
+you
+
+888
+01:31:48,940 --> 01:31:49,440
+you
+
+889
+01:32:18,940 --> 01:32:19,440
+you
+
+890
+01:32:48,940 --> 01:32:49,440
+you
+
+891
+01:33:18,940 --> 01:33:19,440
+you
+
+892
+01:33:48,940 --> 01:33:49,440
+you
+
