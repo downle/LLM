@@ -1,96 +1,42 @@
+https://www.thecloudgirl.dev/blog/rag-vs-large-context-window
+https://medium.com/@ritiksharma009999/rag-vs-long-context-llms-a-comparative-analysis-eeedde99dc76
 
-create a table to compare the advantage and disadvantage of RAG vs Large context window
+Retrieval Augmented Generation (RAG) vs Large Context Window in Large Language Models (LLMs)
+Kevin Neogy
+Kevin Neogy
+Leading AI enabled Digital Transformation | Business, IT & Data Strategy | Data Governance & Analytics | Change Management | IT Business Partner | Business Process Improvement (Lean 6 σ) & RPA | ERP (SAP) Implementation
 
-ChatGPT
 
-Here's a table comparing the advantages and disadvantages of Retrieval-Augmented Generation (RAG) and Large Context Window approaches in natural language processing:
+May 19, 2024
+The first few months of 2024 marked a pivotal moment in the AI field as Google and Anthropic released models (Gemini 1.5 Pro, Claude 3) that are capable of accepting inputs that exceed 1 million tokens.
+To put things into perspective, a context window of 1 million tokens could analyse the entire Harry Potter collection (or roughly 750,000 words) in a Single prompt.
+And then at the Google I/O 2024 on 14th May 2024, Google was announced that Gemini 1.5 Pro will have a massive 2 million token context window 😲 Nous-Capybara-34B V1.9 – a new open source model also offers a 2 million token context window.
+The availability of such massive context windows in LLMs has sparked a debate globally with a lot of people asking what is the need or value of spending time and effort in building and deploying RAG anymore?
+To answer this question, we need to first take a deeper look at the high-level design and workings of RAG and Context Windows in LLMs.
+RAG
+RAG combines the power of LLMs with external knowledge sources to produce more informed and accurate responses. When a user query is received, the RAG system initially processes it to understand its context and intent. Then it retrieves data relevant to the user’s query from some specified knowledge base or database (which can be or in most cases internal to the organisation) and passes it, along with the query, to the LLM as “chunks” or context – providing more accurate, relevant, and up-to-date responses (as depicted in the diagram below).
 
-|Feature|Retrieval-Augmented Generation (RAG)|Large Context Window|
-|---|---|---|
-|**Definition**|Combines retrieval of relevant documents with generative models to improve responses.|Uses a larger context window to process and generate responses, capturing more information at once.|
-|**Memory Usage**|Generally lower, as it retrieves relevant information on-the-fly.|Higher, due to the need to handle large context data all at once.|
-|**Performance**|Can efficiently handle large datasets by focusing only on relevant parts.|May struggle with very large datasets due to memory and processing constraints.|
-|**Relevance of Information**|High, as it uses a retrieval mechanism to fetch the most pertinent information.|Dependent on the size of the context window; might miss relevant information not within the window.|
-|**Scalability**|Highly scalable, since it retrieves only necessary information.|Less scalable, as increasing the context window size can significantly impact performance and memory.|
-|**Response Time**|Can be faster as it deals with smaller, relevant chunks of data.|Slower, especially with very large context windows, due to increased processing requirements.|
-|**Complexity**|More complex, involving integration of retrieval and generation components.|Simpler in terms of architecture, just increasing the context window size.|
-|**Adaptability**|Highly adaptable to changes in the underlying data, as it retrieves information dynamically.|Less adaptable, as the context window size is fixed and may not capture all changes in the data.|
-|**Accuracy**|Potentially higher, as it focuses on the most relevant information.|Can vary; higher context windows can increase accuracy, but may also introduce irrelevant information.|
-|**Use Cases**|Ideal for applications requiring up-to-date or domain-specific information.|Suitable for tasks where understanding large amounts of contiguous text is crucial, like document summarization.|
+High-level design and functioning of a typical RAG system
+Context Windows
+Context Window for an LLM refers to the number of words (i.e., tokens) that can be entered (as a query/input) by users via a single prompt for generating a response. An LLM uses a context window to identify the nuances of language and contextual information to create the most appropriate machine translation. The longer/larger the context window, the more data can be added into the prompt (as input). So, stuffing more data into the large/long contextual window of a LLM should generate more precise and accurate responses by increasing the LLM’s “short-term memory” and its in-context learning ability when generating the outputs. The extended contextual window can potentially enhance the model’s ability to understand more comprehensive narratives and complex ideas by acting as a “lens” to provide additional or deeper perspective/context to the LLMs as well as enabling the model to grasp and connect information from parts of the text that are distant from each other – thereby potentially improving the overall quality and relevance of generated responses.
+LLMs with a large context window can also “remember” more effectively their initial instructions and the content of the most recent conversation - allowing them to deliver responses that are more relevant to the ongoing conversation and tasks.
+This is particularly valuable in tasks requiring document summarization, extended AI conversations, or complex problem-solving where previous input and context is vital.
 
-This table highlights the key advantages and disadvantages of using RAG versus a large context window in natural language processing tasks.
+Pros & Cons of RAG and Large Context Windows
+While larger context windows can give access to more contextual information for the LLMs, it also increases the amount of data that the LLMs have to process. It can thus make it more challenging for the LLMs to identify the useful/relevant information (from the irrelevant ones or “noise”) in the large amount of data that gets fed/entered by the users and may sometimes overwhelm the LLMs (just like the “information overload” scenario we as humans also face quite often 🙂) - resulting in “distraction” and more chances of “hallucination”. Processing large input datasets also requires more computational resources - resulting in more computational costs/expenses and potentially slower performance. 
+In a recent study titled "Lost in the Middle" by Nelson F. Liu and colleagues from Stanford University, they demonstrated that advanced LLMs frequently struggle to extract significant information from their context windows, particularly when important information is buried within the middle area of the context window (as the current LLMs seem to prioritize the data at the beginning and end of the context window). According to their findings, LLMs do best when provided with fewer, more relevant data in the context, rather than huge amount of information. Moreover, in their technical report, Google shows how Gemini 1.5 Pro performs on the “Needle in a Haystack” test, which asks the model to retrieve a few given sentences from a provided text. As can be seen in the image below, Gemini 1.5 Pro has a higher recall at shorter context lengths, and a small decrease in recall toward 1M tokens, where the recall tends to be around 60%. This means that around 40% of the relevant sentences are “lost” to the model.
 
-4o
+“
+RAG on the other hand allows the LLMs to search for and retrieve relevant information from an external knowledge base/database before generating a response without being overwhelmed by a massive internal (context) window. So, in essence RAG takes a more targeted approach and retrieves only the most relevant information, making it faster and more cost effective. Moreover, focusing on relevant information reduces the risk of "hallucinations" and improves factual accuracy.
+Proponents of long/large context windows in LLMs, however, argue that techniques like prioritization & attention mechanisms, strategic truncation, caching mechanisms, good prompt engineering, fine-tuning can help a lot in improving the LLMs’ ability to keep track of longer/larger data inputs, allowing them to grasp or “learn” the context and its finer details more effectively - resulting in more accurate and contextually relevant responses. Google, in fact, showcased that its Gemini 1.5 Pro has shown proficiency in learning new skills from information in long/large prompts without any additional fine-tuning. This is something that cannot be achieved so simply with traditional RAG, currently.
+In my view, however, when it comes to especially Enterprise Use Cases, RAG certainly offers some specific advantages (as of now, at least 🙂) over large/long context windows in LLMs, like the ones mentioned in the table below:
 
-create a table to compare the advantage and disadvantage of RAG vs Large context window, also include the best use cases for these tow
+Comparison between RAG and Large/Long Context Windows in LLMs
+What does the future look like?
+The future landscape of RAG versus Large/Long Context Models is going to constantly evolve over the next couple of months and years. Google is already experimenting on expanding Gemini's context window to 10 million tokens, but with the current hardware and model architecture this option is still not viable for production.
+As hardware evolves and research progresses, we can anticipate a reduction in latency, costs and other downsides associated with large context windows. This trend could potentially lead to a shift away from RAG applications for many use cases in the future. As LLMs become more efficient and capable of handling extensive contexts on their own, the reliance on RAG to supplement LLMs with external knowledgebase(s) may potentially decrease, signaling a significant evolution in how AI systems are designed and utilised for complex tasks.
+However, for now, Enterprises can potentially consider combining RAG with long/large context models to push the boundaries of AI's capabilities. This can leverage the strengths of both technologies: the deep understanding and comprehensive processing power of long-context models, and the dynamic, up-to-date knowledge retrieval of RAG systems. Such integration could lead to AI outputs that are not only coherent and accurate over long/large contexts but also factually precise and relevant - by virtue of pulling in the most up-to-date and accurate information.
+I am really interested in this topic (which is also a hotly debated one at my workplace at the moment 🙂) and would love to hear your thoughts and views.
 
-ChatGPT
 
-Sure, here is a more detailed table comparing Retrieval-Augmented Generation (RAG) and Large Context Window approaches, including their best use cases:
-
-|Feature|Retrieval-Augmented Generation (RAG)|Large Context Window|
-|---|---|---|
-|**Definition**|Combines retrieval of relevant documents with generative models to improve responses.|Uses a larger context window to process and generate responses, capturing more information at once.|
-|**Memory Usage**|Generally lower, as it retrieves relevant information on-the-fly.|Higher, due to the need to handle large context data all at once.|
-|**Performance**|Can efficiently handle large datasets by focusing only on relevant parts.|May struggle with very large datasets due to memory and processing constraints.|
-|**Relevance of Information**|High, as it uses a retrieval mechanism to fetch the most pertinent information.|Dependent on the size of the context window; might miss relevant information not within the window.|
-|**Scalability**|Highly scalable, since it retrieves only necessary information.|Less scalable, as increasing the context window size can significantly impact performance and memory.|
-|**Response Time**|Can be faster as it deals with smaller, relevant chunks of data.|Slower, especially with very large context windows, due to increased processing requirements.|
-|**Complexity**|More complex, involving integration of retrieval and generation components.|Simpler in terms of architecture, just increasing the context window size.|
-|**Adaptability**|Highly adaptable to changes in the underlying data, as it retrieves information dynamically.|Less adaptable, as the context window size is fixed and may not capture all changes in the data.|
-|**Accuracy**|Potentially higher, as it focuses on the most relevant information.|Can vary; higher context windows can increase accuracy, but may also introduce irrelevant information.|
-|**Use Cases**|- Applications requiring up-to-date or domain-specific information.<br>- Tasks needing integration of external knowledge.<br>- Scenarios where real-time information retrieval is crucial (e.g., customer support, research).|- Tasks where understanding large amounts of contiguous text is crucial (e.g., document summarization, complex narrative understanding).<br>- Scenarios requiring detailed context retention (e.g., long-form content generation).|
-
-This table provides a comprehensive comparison of RAG and Large Context Window approaches, highlighting their advantages, disadvantages, and the best use cases for each.
-
-4o
-
-create a table to compare the advantage and disadvantage of RAG vs Large context window on codebase analysing and debugging use case
-
-ChatGPT
-
-Certainly! Here’s a table comparing the advantages and disadvantages of Retrieval-Augmented Generation (RAG) and Large Context Window approaches specifically for codebase analysis and debugging:
-
-|Feature|Retrieval-Augmented Generation (RAG)|Large Context Window|
-|---|---|---|
-|**Definition**|Combines retrieval of relevant code snippets or documentation with generative models to assist in analysis and debugging.|Uses a larger context window to analyze and debug code, capturing more lines of code and comments at once.|
-|**Memory Usage**|Generally lower, as it retrieves relevant code snippets or documentation on-the-fly.|Higher, due to the need to handle large chunks of code and related information simultaneously.|
-|**Performance**|Can efficiently handle large codebases by focusing only on relevant parts.|May struggle with very large codebases due to memory and processing constraints.|
-|**Relevance of Information**|High, as it uses a retrieval mechanism to fetch the most pertinent code snippets and documentation.|Dependent on the size of the context window; might miss relevant code that falls outside the window.|
-|**Scalability**|Highly scalable, since it retrieves only necessary code snippets or documentation.|Less scalable, as increasing the context window size can significantly impact performance and memory.|
-|**Response Time**|Can be faster as it deals with smaller, relevant chunks of code or documentation.|Slower, especially with very large context windows, due to increased processing requirements.|
-|**Complexity**|More complex, involving integration of retrieval and generation components.|Simpler in terms of architecture, just increasing the context window size.|
-|**Adaptability**|Highly adaptable to changes in the codebase, as it retrieves information dynamically.|Less adaptable, as the context window size is fixed and may not capture all changes in the codebase.|
-|**Accuracy**|Potentially higher, as it focuses on the most relevant code snippets and documentation.|Can vary; higher context windows can increase accuracy, but may also introduce irrelevant information.|
-|**Handling Large Codebases**|Effective, as it retrieves only the most relevant sections, reducing the cognitive load on the developer.|May struggle, as the context window may not encompass all relevant parts of a large codebase.|
-|**Debugging**|Excels in pinpointing specific issues by retrieving relevant error messages and documentation.|Effective for understanding complex interactions over a larger portion of the code.|
-|**Use Cases**|- Debugging specific issues with error messages and relevant documentation.<br>- Understanding code changes and their impacts.<br>- Integrating knowledge from extensive documentation or comments.|- Understanding and navigating complex interactions in the code.<br>- Analyzing code flow and logic across multiple functions or files.<br>- Refactoring large sections of code.|
-
-This table highlights the advantages and disadvantages of using RAG and Large Context Window approaches specifically for codebase analysis and debugging, along with their best use cases in this context.
-
-4o
-
-create a table to compare the advantage and disadvantage of RAG vs Large context window on codebase analysing and debugging use case. please focus more on the benifits of using large context window
-
-ChatGPT
-
-Certainly! Here is a more focused comparison table that highlights the benefits of using a large context window for codebase analysis and debugging, while still providing a balanced view of both approaches:
-
-|Feature|Retrieval-Augmented Generation (RAG)|Large Context Window|
-|---|---|---|
-|**Definition**|Combines retrieval of relevant code snippets or documentation with generative models to assist in analysis and debugging.|Uses a larger context window to analyze and debug code, capturing more lines of code and comments at once.|
-|**Memory Usage**|Generally lower, as it retrieves relevant code snippets or documentation on-the-fly.|Higher, due to the need to handle large chunks of code and related information simultaneously.|
-|**Performance**|Can efficiently handle large codebases by focusing only on relevant parts.|May struggle with very large codebases due to memory and processing constraints.|
-|**Relevance of Information**|High, as it uses a retrieval mechanism to fetch the most pertinent code snippets and documentation.|Can capture broader context, reducing the chance of missing relevant information within the window.|
-|**Scalability**|Highly scalable, since it retrieves only necessary code snippets or documentation.|Less scalable, as increasing the context window size can significantly impact performance and memory.|
-|**Response Time**|Can be faster as it deals with smaller, relevant chunks of code or documentation.|May be slower with very large context windows, due to increased processing requirements.|
-|**Complexity**|More complex, involving integration of retrieval and generation components.|Simpler in terms of architecture, just increasing the context window size.|
-|**Adaptability**|Highly adaptable to changes in the codebase, as it retrieves information dynamically.|Less adaptable, as the context window size is fixed and may not capture all changes in the codebase.|
-|**Accuracy**|Potentially higher, as it focuses on the most relevant code snippets and documentation.|Can be very high for tasks requiring understanding of interactions over larger sections of code.|
-|**Handling Large Codebases**|Effective, as it retrieves only the most relevant sections, reducing the cognitive load on the developer.|Excels in understanding and analyzing complex interactions across a large portion of the codebase.|
-|**Debugging**|Excels in pinpointing specific issues by retrieving relevant error messages and documentation.|Highly effective for debugging by providing a comprehensive view of code flow and dependencies.|
-|**Code Comprehension**|Good for understanding specific parts of the code with relevant documentation.|Excellent for gaining a holistic understanding of code, including variable scopes, function calls, and logic flow across multiple sections.|
-|**Refactoring**|Facilitates targeted refactoring by focusing on relevant code snippets and documentation.|Highly beneficial for refactoring large sections of code, ensuring consistency and understanding of overall structure.|
-|**Use Cases**|- Debugging specific issues with error messages and relevant documentation.<br>- Understanding code changes and their impacts.<br>- Integrating knowledge from extensive documentation or comments.|- Understanding and navigating complex interactions in the code.<br>- Analyzing code flow and logic across multiple functions or files.<br>- Refactoring large sections of code.<br>- Ensuring consistency and understanding in large projects.|
-
-This table provides a detailed comparison, highlighting the specific benefits of using a large context window for codebase analysis and debugging, while also considering the advantages and disadvantages of both approaches.
+Report this article
