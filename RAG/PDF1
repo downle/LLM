@@ -1,0 +1,53 @@
+import streamlit as st
+import fitz  # PyMuPDF
+from io import BytesIO
+
+def highlight_text_in_pdf(pdf_bytes, text_to_highlight):
+    # Open the PDF
+    pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
+
+    # Create a highlight annotation for each occurrence of the text
+    for page_number in range(len(pdf_document)):
+        page = pdf_document[page_number]
+        for text in text_to_highlight:
+            text_instances = page.search_for(text)
+            for instance in text_instances:
+                highlight = page.add_highlight_annot(instance)
+
+    # Save the modified PDF to a BytesIO buffer
+    output_pdf_bytes = BytesIO()
+    pdf_document.save(output_pdf_bytes)
+    pdf_document.close()
+    output_pdf_bytes.seek(0)
+    
+    return output_pdf_bytes
+
+def main():
+    st.title("PDF Text Highlighter")
+
+    # File uploader for PDF
+    st.sidebar.title("Upload PDF")
+    uploaded_file = st.sidebar.file_uploader("Choose a PDF file", type=["pdf"])
+
+    # Text input for highlighting
+    text_to_highlight = st.sidebar.text_input("Enter text to highlight")
+
+    # Highlight and download button
+    if st.sidebar.button("Highlight and Download"):
+        if uploaded_file is not None and text_to_highlight.strip() != "":
+            # Highlight text in PDF
+            highlighted_pdf_bytes = highlight_text_in_pdf(uploaded_file.read(), text_to_highlight.split())
+
+            # Download highlighted PDF
+            st.download_button(
+                label="Download Highlighted PDF",
+                data=highlighted_pdf_bytes,
+                file_name="highlighted_pdf.pdf",
+                mime="application/pdf"
+            )
+            st.success("PDF highlighted and ready for download.")
+        else:
+            st.error("Please upload a PDF file and specify text to highlight.")
+
+if __name__ == "__main__":
+    main()
